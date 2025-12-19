@@ -27,9 +27,11 @@ struct FlashcardView: View {
                 )
                 .onTapGesture {
                     if !isRevealed {
+                        HapticFeedback.cardFlipped()
                         onTap()
                     }
                 }
+                .flashcardAccessibility(isRevealed: isRevealed, personName: person.name)
 
             Spacer()
 
@@ -130,6 +132,8 @@ struct FlashcardView: View {
 
                 if value.translation.width > threshold {
                     // Swipe right - Got it
+                    HapticFeedback.cardSwiped()
+                    AccessibilityAnnouncement.reviewCorrect()
                     withAnimation(.easeOut(duration: 0.2)) {
                         offset = 500
                         opacity = 0
@@ -140,6 +144,8 @@ struct FlashcardView: View {
                     }
                 } else if value.translation.width < -threshold {
                     // Swipe left - Missed
+                    HapticFeedback.cardSwiped()
+                    AccessibilityAnnouncement.reviewIncorrect()
                     withAnimation(.easeOut(duration: 0.2)) {
                         offset = -500
                         opacity = 0

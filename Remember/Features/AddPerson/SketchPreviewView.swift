@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SketchPreviewView: View {
     @Bindable var viewModel: AddPersonViewModel
+    var onAddPhoto: (() -> Void)? = nil
     let onContinue: () -> Void
 
     var body: some View {
@@ -43,12 +44,14 @@ struct SketchPreviewView: View {
                 }
                 .disabled(viewModel.isProcessing)
 
-                Button {
-                    // TODO: Photo picker
-                } label: {
-                    Text("Add a photo instead")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                if let onAddPhoto = onAddPhoto {
+                    Button {
+                        onAddPhoto()
+                    } label: {
+                        Text("Add a photo instead")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
             .padding(.horizontal, 24)

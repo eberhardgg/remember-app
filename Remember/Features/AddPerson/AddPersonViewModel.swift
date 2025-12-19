@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 import Observation
+import UIKit
 
 @Observable
 final class AddPersonViewModel {
@@ -27,6 +28,9 @@ final class AddPersonViewModel {
     // Sketch state
     var sketchPath: String?
     var sketchVariant: Int = 0
+
+    // Photo state
+    var photoPath: String?
 
     // Error handling
     var error: Error?
@@ -170,6 +174,29 @@ final class AddPersonViewModel {
     func setContext(_ text: String) {
         context = text
         person?.context = text.isEmpty ? nil : text
+    }
+
+    func savePhoto(_ image: UIImage) async {
+        guard let person = person else { return }
+
+        isProcessing = true
+
+        do {
+            // Compress and save as JPEG
+            guard let data = image.jpegData(compressionQuality: 0.8) else {
+                throw SketchServiceError.saveFailed
+            }
+
+            let path = try fileService.savePhoto(data: data, for: person.id)
+            photoPath = path
+            person.photoImagePath = path
+            person.preferredVisualType = .photo
+        } catch {
+            self.error = error
+            self.showError = true
+        }
+
+        isProcessing = false
     }
 
     func savePerson() throws {

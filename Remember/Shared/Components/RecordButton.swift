@@ -7,7 +7,16 @@ struct RecordButton: View {
     @State private var pulseScale: CGFloat = 1.0
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            if isRecording {
+                HapticFeedback.recordingStopped()
+                AccessibilityAnnouncement.recordingStopped()
+            } else {
+                HapticFeedback.recordingStarted()
+                AccessibilityAnnouncement.recordingStarted()
+            }
+            action()
+        } label: {
             ZStack {
                 // Pulse animation when recording
                 if isRecording {
@@ -36,6 +45,7 @@ struct RecordButton: View {
             }
         }
         .buttonStyle(.plain)
+        .recordButtonAccessibility(isRecording: isRecording)
         .animation(.easeInOut(duration: 0.2), value: isRecording)
         .onChange(of: isRecording) { _, newValue in
             if newValue {

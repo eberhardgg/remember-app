@@ -59,7 +59,13 @@ struct AddPersonFlow: View {
                 currentStep = .sketch
             }
         case .sketch:
-            SketchPreviewView(viewModel: viewModel) {
+            SketchPreviewView(viewModel: viewModel, onAddPhoto: {
+                currentStep = .photo
+            }) {
+                currentStep = .context
+            }
+        case .photo:
+            PhotoAttachView(viewModel: viewModel) {
                 currentStep = .context
             }
         case .context:
@@ -75,6 +81,7 @@ enum AddPersonStep {
     case name
     case ramble
     case sketch
+    case photo
     case context
 }
 

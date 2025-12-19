@@ -89,15 +89,8 @@ struct HomeView: View {
     }
 
     private var emptyState: some View {
-        ContentUnavailableView {
-            Label("No People Yet", systemImage: "person.2")
-        } description: {
-            Text("Remember helps you recall names by combining voice descriptions with spaced repetition.")
-        } actions: {
-            Button("Add Someone") {
-                showingAddPerson = true
-            }
-            .buttonStyle(.borderedProminent)
+        EmptyStateView {
+            showingAddPerson = true
         }
     }
 
