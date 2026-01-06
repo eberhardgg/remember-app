@@ -25,7 +25,9 @@ final class PersonService: PersonServiceProtocol {
         // Build predicate based on filters
         if let searchText = searchText, !searchText.isEmpty {
             let searchPredicate = #Predicate<Person> { person in
-                person.name.localizedStandardContains(searchText)
+                person.name.localizedStandardContains(searchText) ||
+                (person.transcriptText?.localizedStandardContains(searchText) ?? false) ||
+                (person.context?.localizedStandardContains(searchText) ?? false)
             }
             descriptor.predicate = searchPredicate
         }

@@ -5,9 +5,17 @@ struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel: HomeViewModel?
     @State private var showingAddPerson = false
+    @State private var showingQuickAdd = false
     @State private var showingReview = false
+    @State private var showingSettings = false
     @State private var selectedPerson: Person?
     @State private var searchText = ""
+
+    // Voice search state
+    @State private var isRecordingSearch = false
+    @State private var isTranscribing = false
+    @State private var audioService: AudioService?
+    @State private var transcriptService: TranscriptService?
 
     var body: some View {
         NavigationStack {
@@ -20,21 +28,56 @@ struct HomeView: View {
             }
             .navigationTitle("Remember")
             .toolbar {
-                ToolbarItem(placement: .primaryAction) {
+                ToolbarItem(placement: .topBarLeading) {
                     Button {
-                        showingAddPerson = true
+                        showingSettings = true
                     } label: {
-                        Image(systemName: "plus")
+                        Image(systemName: "gearshape")
+                    }
+                }
+                ToolbarItem(placement: .primaryAction) {
+                    HStack(spacing: 16) {
+                        // Voice search button
+                        Button {
+                            Task {
+                                await toggleVoiceSearch()
+                            }
+                        } label: {
+                            Image(systemName: isRecordingSearch ? "stop.circle.fill" : "mic.fill")
+                                .foregroundStyle(isRecordingSearch ? .red : .primary)
+                        }
+                        .disabled(isTranscribing)
+
+                        Menu {
+                            Button {
+                                showingQuickAdd = true
+                            } label: {
+                                Label("Quick Add", systemImage: "plus")
+                            }
+
+                            Button {
+                                showingAddPerson = true
+                            } label: {
+                                Label("Add with Voice", systemImage: "mic.fill")
+                            }
+                        } label: {
+                            Image(systemName: "plus")
+                        }
                     }
                 }
             }
-            .searchable(text: $searchText, prompt: "Search people")
+            .searchable(text: $searchText, prompt: "Search names, descriptions...")
             .onChange(of: searchText) { _, newValue in
                 viewModel?.searchText = newValue
                 viewModel?.loadPeople()
             }
             .sheet(isPresented: $showingAddPerson) {
                 AddPersonFlow(onComplete: {
+                    viewModel?.loadPeople()
+                })
+            }
+            .sheet(isPresented: $showingQuickAdd) {
+                QuickAddView(onComplete: {
                     viewModel?.loadPeople()
                 })
             }
@@ -48,6 +91,9 @@ struct HomeView: View {
                     viewModel?.loadPeople()
                 })
             }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
+            }
         }
         .onAppear {
             if viewModel == nil {
@@ -56,6 +102,25 @@ struct HomeView: View {
                 let reviewService = ReviewService(modelContext: modelContext)
                 viewModel = HomeViewModel(personService: personService, reviewService: reviewService)
                 viewModel?.loadPeople()
+
+                // Initialize voice search services
+                audioService = AudioService(fileService: fileService)
+                let transcriptSvc = TranscriptService()
+                transcriptService = transcriptSvc
+
+                // Initialize Watch connectivity
+                let sketchService = SketchService(
+                    fileService: fileService,
+                    keywordParser: KeywordParser(),
+                    renderer: SketchRenderer()
+                )
+                WatchConnectivityService.shared.configure(
+                    modelContext: modelContext,
+                    transcriptService: transcriptSvc,
+                    personService: personService,
+                    fileService: fileService,
+                    sketchService: sketchService
+                )
             }
         }
     }
@@ -109,6 +174,44 @@ struct HomeView: View {
             .padding(.vertical, 8)
         }
         .listRowBackground(Color.accentColor.opacity(0.1))
+    }
+
+    // MARK: - Voice Search
+
+    private func toggleVoiceSearch() async {
+        guard let audioService = audioService else { return }
+
+        if isRecordingSearch {
+            // Stop recording and transcribe
+            do {
+                let url = try audioService.stopRecording()
+                isRecordingSearch = false
+                isTranscribing = true
+
+                // Transcribe the audio
+                if let transcriptService = transcriptService {
+                    let hasPermission = await transcriptService.requestPermission()
+                    if hasPermission {
+                        let text = try await transcriptService.transcribe(audioURL: url)
+                        searchText = text
+                    }
+                }
+            } catch {
+                print("Voice search error: \(error)")
+            }
+            isTranscribing = false
+        } else {
+            // Start recording
+            let hasPermission = await audioService.requestPermission()
+            guard hasPermission else { return }
+
+            do {
+                try audioService.startRecording(for: UUID())
+                isRecordingSearch = true
+            } catch {
+                print("Voice search recording error: \(error)")
+            }
+        }
     }
 }
 

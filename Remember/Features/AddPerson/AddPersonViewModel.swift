@@ -137,7 +137,11 @@ final class AddPersonViewModel {
         isProcessing = true
 
         do {
-            let path = try await sketchService.generateSketch(from: keywords, for: person.id)
+            let path = try await sketchService.generateSketch(
+                from: transcript,
+                keywords: keywords,
+                for: person.id
+            )
             sketchPath = path
             person.sketchImagePath = path
             person.descriptorKeywords = keywords
@@ -157,12 +161,59 @@ final class AddPersonViewModel {
 
         do {
             let path = try await sketchService.regenerateSketch(
-                from: keywords,
-                for: person.id,
-                variant: sketchVariant
+                from: transcript,
+                keywords: keywords,
+                for: person.id
             )
             sketchPath = path
             person.sketchImagePath = path
+        } catch {
+            self.error = error
+            self.showError = true
+        }
+
+        isProcessing = false
+    }
+
+    /// Stop recording and append to existing transcript, then regenerate sketch
+    func stopRecordingAndRefine() async {
+        guard let person = person else { return }
+
+        do {
+            let url = try audioService.stopRecording()
+            isRecording = false
+            isProcessing = true
+
+            // Transcribe the new audio
+            let hasPermission = await transcriptService.requestPermission()
+            guard hasPermission else {
+                isProcessing = false
+                return
+            }
+
+            let newText = try await transcriptService.transcribe(audioURL: url)
+
+            // Append to existing transcript
+            if let existingTranscript = transcript, !existingTranscript.isEmpty {
+                transcript = existingTranscript + " " + newText
+            } else {
+                transcript = newText
+            }
+
+            // Re-extract keywords from combined transcript
+            let parser = KeywordParser()
+            keywords = parser.extractKeywords(from: transcript ?? "")
+
+            // Regenerate sketch with updated description
+            let path = try await sketchService.regenerateSketch(
+                from: transcript,
+                keywords: keywords,
+                for: person.id
+            )
+            sketchPath = path
+            person.sketchImagePath = path
+            person.descriptorKeywords = keywords
+
         } catch {
             self.error = error
             self.showError = true

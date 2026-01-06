@@ -2,6 +2,7 @@ import XCTest
 import SwiftData
 @testable import Remember
 
+@MainActor
 final class ReviewServiceTests: XCTestCase {
 
     var container: ModelContainer!

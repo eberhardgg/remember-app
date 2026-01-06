@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct PersonEditView: View {
     @Environment(\.dismiss) private var dismiss
@@ -9,12 +10,14 @@ struct PersonEditView: View {
 
     @State private var name: String
     @State private var context: String
+    @State private var description: String
 
     init(person: Person, onSave: @escaping () -> Void) {
         self.person = person
         self.onSave = onSave
         _name = State(initialValue: person.name)
         _context = State(initialValue: person.context ?? "")
+        _description = State(initialValue: person.transcriptText ?? "")
     }
 
     var body: some View {
@@ -27,6 +30,11 @@ struct PersonEditView: View {
 
                 Section("Context") {
                     TextField("Where did you meet?", text: $context)
+                }
+
+                Section("Description") {
+                    TextField("What do they look like?", text: $description, axis: .vertical)
+                        .lineLimit(3...6)
                 }
 
                 Section("Visual") {
@@ -68,6 +76,13 @@ struct PersonEditView: View {
     private func save() {
         person.name = name.trimmingCharacters(in: .whitespaces)
         person.context = context.isEmpty ? nil : context
+        person.transcriptText = description.isEmpty ? nil : description
+
+        // Re-extract keywords if description changed
+        if !description.isEmpty {
+            let parser = KeywordParser()
+            person.descriptorKeywords = parser.extractKeywords(from: description)
+        }
 
         do {
             try modelContext.save()

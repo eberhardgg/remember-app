@@ -1,12 +1,14 @@
 import Foundation
 import SwiftData
 
+@MainActor
 protocol ReviewServiceProtocol {
     func getDueCount() -> Int
     func getReviewQueue(limit: Int) -> [Person]
     func updateReviewState(for person: Person, gotIt: Bool)
 }
 
+@MainActor
 final class ReviewService: ReviewServiceProtocol {
     private let modelContext: ModelContext
 

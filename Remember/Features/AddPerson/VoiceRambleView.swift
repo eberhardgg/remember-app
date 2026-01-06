@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct VoiceRambleView: View {
     @Bindable var viewModel: AddPersonViewModel
@@ -30,24 +31,23 @@ struct VoiceRambleView: View {
             Spacer()
 
             if viewModel.isProcessing {
-                ProgressView("Processing...")
-                    .padding()
+                VStack(spacing: 12) {
+                    ProgressView()
+                        .scaleEffect(1.2)
+                    Text("Creating sketch...")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding()
             }
-
-            Button {
-                onContinue()
-            } label: {
-                Text("Continue")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-            }
-            .buttonStyle(.borderedProminent)
-            .disabled(!viewModel.hasRecording || viewModel.isProcessing)
-            .padding(.horizontal, 24)
-            .padding(.bottom, 24)
         }
         .navigationTitle("Voice Description")
+        // Auto-advance when sketch is ready
+        .onChange(of: viewModel.sketchPath) { _, newPath in
+            if newPath != nil {
+                onContinue()
+            }
+        }
         .alert("Error", isPresented: $viewModel.showError) {
             Button("OK") {}
         } message: {

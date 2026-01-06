@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct PersonDetailView: View {
     @Environment(\.dismiss) private var dismiss
@@ -9,6 +10,7 @@ struct PersonDetailView: View {
 
     @State private var showingReview = false
     @State private var showingEdit = false
+    @State private var showingDeleteConfirmation = false
 
     var body: some View {
         NavigationStack {
@@ -33,6 +35,28 @@ struct PersonDetailView: View {
                             .foregroundStyle(.secondary)
                     }
 
+                    // Keywords
+                    if !person.descriptorKeywords.isEmpty {
+                        KeywordTagsView(keywords: person.descriptorKeywords)
+                            .padding(.horizontal)
+                    }
+
+                    // Description/transcript
+                    if let transcript = person.transcriptText, !transcript.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Description")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text(transcript)
+                                .font(.subheadline)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .background(Color(.secondarySystemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .padding(.horizontal)
+                    }
+
                     // Added date
                     Text("Added \(person.createdAt.formatted(date: .abbreviated, time: .omitted))")
                         .font(.caption)
@@ -43,6 +67,16 @@ struct PersonDetailView: View {
 
                     // Review state
                     reviewStateSection
+
+                    // Delete button
+                    Button(role: .destructive) {
+                        showingDeleteConfirmation = true
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 16)
 
                     Spacer()
                 }
@@ -85,7 +119,22 @@ struct PersonDetailView: View {
                     onUpdate()
                 })
             }
+            .alert("Delete \(person.name)?", isPresented: $showingDeleteConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete", role: .destructive) {
+                    deletePerson()
+                }
+            } message: {
+                Text("This cannot be undone.")
+            }
         }
+    }
+
+    private func deletePerson() {
+        modelContext.delete(person)
+        try? modelContext.save()
+        onUpdate()
+        dismiss()
     }
 
     @ViewBuilder

@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct ContextEntryView: View {
     @Bindable var viewModel: AddPersonViewModel

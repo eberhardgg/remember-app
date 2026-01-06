@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct NameEntryView: View {
     @Bindable var viewModel: AddPersonViewModel

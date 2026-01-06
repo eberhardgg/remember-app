@@ -55,7 +55,7 @@ struct EmptyStateView: View {
 
             Image(systemName: "person.2.fill")
                 .font(.system(size: 50))
-                .foregroundStyle(.accent)
+                .foregroundStyle(Color.accentColor)
         }
     }
 
@@ -68,7 +68,7 @@ struct EmptyStateView: View {
 
             HStack(alignment: .top, spacing: 12) {
                 Image(systemName: "mic.fill")
-                    .foregroundStyle(.accent)
+                    .foregroundStyle(Color.accentColor)
                     .frame(width: 24)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Describe them")
@@ -82,7 +82,7 @@ struct EmptyStateView: View {
 
             HStack(alignment: .top, spacing: 12) {
                 Image(systemName: "paintbrush.fill")
-                    .foregroundStyle(.accent)
+                    .foregroundStyle(Color.accentColor)
                     .frame(width: 24)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Get a memory sketch")
@@ -96,7 +96,7 @@ struct EmptyStateView: View {
 
             HStack(alignment: .top, spacing: 12) {
                 Image(systemName: "brain.head.profile")
-                    .foregroundStyle(.accent)
+                    .foregroundStyle(Color.accentColor)
                     .frame(width: 24)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Practice recall")

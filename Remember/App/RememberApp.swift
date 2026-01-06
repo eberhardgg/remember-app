@@ -15,7 +15,7 @@ struct RememberApp: App {
 
     var body: some Scene {
         WindowGroup {
-            HomeView()
+            MainTabView()
         }
         .modelContainer(container)
     }
