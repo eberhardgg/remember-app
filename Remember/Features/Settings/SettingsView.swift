@@ -163,7 +163,9 @@ struct SettingsView: View {
     private func saveAPIKey() {
         guard !apiKey.isEmpty, !apiKey.starts(with: "•") else { return }
 
-        UserDefaults.standard.set(apiKey, forKey: apiKeyKey)
+        // Trim whitespace and newlines
+        let cleanedKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        UserDefaults.standard.set(cleanedKey, forKey: apiKeyKey)
 
         showSaveConfirmation = true
 
@@ -185,7 +187,7 @@ struct SettingsView: View {
         }
 
         isTesting = true
-        testResult = ""
+        testResult = "Testing..."
 
         // Test with a simple models endpoint
         guard let url = URL(string: "https://api.openai.com/v1/models") else {
@@ -198,18 +200,38 @@ struct SettingsView: View {
         request.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
 
         do {
-            let (_, response) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await URLSession.shared.data(for: request)
             if let httpResponse = response as? HTTPURLResponse {
                 if httpResponse.statusCode == 200 {
-                    testResult = "✅ Success! API key is valid"
+                    // Check if dall-e-3 is available
+                    if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let models = json["data"] as? [[String: Any]] {
+                        let modelIds = models.compactMap { $0["id"] as? String }
+                        if modelIds.contains("dall-e-3") {
+                            testResult = "✅ Valid key with DALL-E 3 access"
+                        } else {
+                            testResult = "⚠️ Key valid but DALL-E 3 not found in \(models.count) models"
+                        }
+                    } else {
+                        testResult = "✅ API key is valid"
+                    }
                 } else if httpResponse.statusCode == 401 {
-                    testResult = "❌ Invalid API key (401 Unauthorized)"
+                    testResult = "❌ Invalid API key (401)"
+                } else if httpResponse.statusCode == 429 {
+                    testResult = "❌ Rate limited or quota exceeded (429)"
                 } else {
-                    testResult = "❌ Error: HTTP \(httpResponse.statusCode)"
+                    // Try to get error message
+                    if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let error = json["error"] as? [String: Any],
+                       let message = error["message"] as? String {
+                        testResult = "❌ \(message)"
+                    } else {
+                        testResult = "❌ HTTP \(httpResponse.statusCode)"
+                    }
                 }
             }
         } catch {
-            testResult = "❌ Network error: \(error.localizedDescription)"
+            testResult = "❌ Network: \(error.localizedDescription)"
         }
 
         isTesting = false

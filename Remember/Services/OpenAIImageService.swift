@@ -114,9 +114,12 @@ final class OpenAIImageService: OpenAIImageServiceProtocol {
         if httpResponse.statusCode != 200 {
             // Try to parse error message
             if let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let error = errorResponse["error"] as? [String: Any],
-               let message = error["message"] as? String {
-                throw OpenAIImageError.apiError(message)
+               let error = errorResponse["error"] as? [String: Any] {
+                let message = error["message"] as? String ?? "Unknown error"
+                let type = error["type"] as? String ?? ""
+                let code = error["code"] as? String ?? ""
+                print("[OpenAI] Error - Type: \(type), Code: \(code), Message: \(message)")
+                throw OpenAIImageError.apiError("\(message) (\(type))")
             }
             throw OpenAIImageError.apiError("HTTP \(httpResponse.statusCode)")
         }
