@@ -124,4 +124,14 @@ extension WatchViewModel: WCSessionDelegate {
     nonisolated func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         // Session activated
     }
+
+    #if os(iOS)
+    nonisolated func sessionDidBecomeInactive(_ session: WCSession) {
+        // Session became inactive
+    }
+
+    nonisolated func sessionDidDeactivate(_ session: WCSession) {
+        // Session deactivated
+    }
+    #endif
 }
