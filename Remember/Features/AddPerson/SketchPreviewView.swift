@@ -18,6 +18,13 @@ struct SketchPreviewView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 20))
                 .shadow(radius: 10)
 
+            // Show sketch source for debugging
+            if !viewModel.sketchSource.isEmpty {
+                Text(viewModel.sketchSource)
+                    .font(.caption)
+                    .foregroundStyle(viewModel.sketchSource.contains("OpenAI") ? .green : .orange)
+            }
+
             // Name - large and prominent
             Text(viewModel.name)
                 .font(.system(size: 32, weight: .bold))

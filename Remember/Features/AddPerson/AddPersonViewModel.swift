@@ -36,6 +36,9 @@ final class AddPersonViewModel {
     var error: Error?
     var showError: Bool = false
 
+    // Debug info
+    var sketchSource: String = ""
+
     // The person being created
     private(set) var person: Person?
 
@@ -136,6 +139,18 @@ final class AddPersonViewModel {
 
         isProcessing = true
 
+        // Check if OpenAI will be used
+        let hasAPIKey = UserDefaults.standard.string(forKey: "openai_api_key")?.isEmpty == false
+        let hasTranscript = transcript?.isEmpty == false
+
+        if hasAPIKey && hasTranscript {
+            sketchSource = "Using OpenAI DALL-E 3..."
+        } else if !hasAPIKey {
+            sketchSource = "No API key - using local sketch"
+        } else {
+            sketchSource = "No transcript - using local sketch"
+        }
+
         do {
             let path = try await sketchService.generateSketch(
                 from: transcript,
@@ -145,9 +160,16 @@ final class AddPersonViewModel {
             sketchPath = path
             person.sketchImagePath = path
             person.descriptorKeywords = keywords
+
+            if hasAPIKey && hasTranscript {
+                sketchSource = "Generated with OpenAI"
+            } else {
+                sketchSource = "Generated locally"
+            }
         } catch {
             self.error = error
             self.showError = true
+            sketchSource = "Error: \(error.localizedDescription)"
         }
 
         isProcessing = false
