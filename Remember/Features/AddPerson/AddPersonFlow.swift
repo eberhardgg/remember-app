@@ -29,20 +29,21 @@ struct AddPersonFlow: View {
             }
         }
         .onAppear {
-            if viewModel == nil {
-                let fileService = FileService()
-                viewModel = AddPersonViewModel(
-                    modelContext: modelContext,
+            // Always create a fresh ViewModel when the flow appears
+            // This ensures clean state for each new person
+            let fileService = FileService()
+            viewModel = AddPersonViewModel(
+                modelContext: modelContext,
+                fileService: fileService,
+                audioService: AudioService(fileService: fileService),
+                transcriptService: TranscriptService(),
+                sketchService: SketchService(
                     fileService: fileService,
-                    audioService: AudioService(fileService: fileService),
-                    transcriptService: TranscriptService(),
-                    sketchService: SketchService(
-                        fileService: fileService,
-                        keywordParser: KeywordParser(),
-                        renderer: SketchRenderer()
-                    )
+                    keywordParser: KeywordParser(),
+                    renderer: SketchRenderer()
                 )
-            }
+            )
+            currentStep = .name
         }
         .interactiveDismissDisabled(currentStep != .name)
     }
