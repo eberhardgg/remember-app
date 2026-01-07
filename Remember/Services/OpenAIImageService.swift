@@ -54,11 +54,13 @@ final class OpenAIImageService: OpenAIImageServiceProtocol {
 
     func generateSketch(from transcript: String, keywords: [String]) async throws -> UIImage {
         print("[OpenAIImageService] generateSketch called")
+        print("[OpenAIImageService] transcript length: \(transcript.count)")
         guard let apiKey = apiKey, !apiKey.isEmpty else {
             print("[OpenAIImageService] No API key!")
             throw OpenAIImageError.noAPIKey
         }
         print("[OpenAIImageService] API key present (length: \(apiKey.count))")
+        print("[OpenAIImageService] API key prefix: \(apiKey.prefix(10))...")
 
         let prompt = buildPrompt(from: transcript, keywords: keywords)
         print("[OpenAIImageService] Calling DALL-E 3 API...")

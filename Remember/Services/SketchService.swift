@@ -48,12 +48,8 @@ final class SketchService: SketchServiceProtocol {
         if openAIService.hasAPIKey {
             if let transcript = transcript, !transcript.isEmpty {
                 print("[SketchService] Using OpenAI with transcript")
-                do {
-                    return try await generateWithOpenAI(transcript: transcript, keywords: keywords, for: personId)
-                } catch {
-                    print("[SketchService] OpenAI failed: \(error)")
-                    // Fall through to local renderer
-                }
+                // Don't catch - let errors propagate so caller knows OpenAI failed
+                return try await generateWithOpenAI(transcript: transcript, keywords: keywords, for: personId)
             } else {
                 print("[SketchService] Has API key but no transcript")
             }
@@ -61,8 +57,8 @@ final class SketchService: SketchServiceProtocol {
             print("[SketchService] No API key configured")
         }
 
-        // Fall back to local renderer
-        print("[SketchService] Falling back to local renderer")
+        // Only use local renderer when OpenAI isn't configured or no transcript
+        print("[SketchService] Using local renderer (no API key or no transcript)")
         return try await generateLocally(from: keywords, for: personId, variant: 0)
     }
 
