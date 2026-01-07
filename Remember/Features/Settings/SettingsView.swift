@@ -55,6 +55,22 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    if hasAPIKey {
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                            Text("API Key Configured")
+                                .foregroundStyle(.green)
+                        }
+                    } else {
+                        HStack {
+                            Image(systemName: "exclamationmark.circle.fill")
+                                .foregroundStyle(.orange)
+                            Text("No API Key - Using Local Sketches")
+                                .foregroundStyle(.orange)
+                        }
+                    }
+
                     Button {
                         saveAPIKey()
                     } label: {
@@ -67,7 +83,7 @@ struct SettingsView: View {
                             }
                         }
                     }
-                    .disabled(apiKey.isEmpty)
+                    .disabled(apiKey.isEmpty || apiKey.starts(with: "•"))
 
                     if hasAPIKey {
                         Button(role: .destructive) {
