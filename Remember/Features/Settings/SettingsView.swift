@@ -4,6 +4,8 @@ struct SettingsView: View {
     @State private var apiKey: String = ""
     @State private var showAPIKey: Bool = false
     @State private var showSaveConfirmation: Bool = false
+    @State private var testResult: String = ""
+    @State private var isTesting: Bool = false
 
     private let apiKeyKey = "openai_api_key"
 
@@ -55,12 +57,17 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    if hasAPIKey {
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(.green)
-                            Text("API Key Configured")
-                                .foregroundStyle(.green)
+                    if let storedKey = UserDefaults.standard.string(forKey: apiKeyKey), !storedKey.isEmpty {
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                                Text("API Key Configured")
+                                    .foregroundStyle(.green)
+                            }
+                            Text("Key: \(storedKey.prefix(7))... (\(storedKey.count) chars)")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
                         }
                     } else {
                         HStack {
@@ -86,6 +93,27 @@ struct SettingsView: View {
                     .disabled(apiKey.isEmpty || apiKey.starts(with: "•"))
 
                     if hasAPIKey {
+                        Button {
+                            Task {
+                                await testAPIKey()
+                            }
+                        } label: {
+                            HStack {
+                                Text("Test API Key")
+                                Spacer()
+                                if isTesting {
+                                    ProgressView()
+                                }
+                            }
+                        }
+                        .disabled(isTesting)
+
+                        if !testResult.isEmpty {
+                            Text(testResult)
+                                .font(.caption)
+                                .foregroundStyle(testResult.contains("Success") ? .green : .red)
+                        }
+
                         Button(role: .destructive) {
                             clearAPIKey()
                         } label: {
@@ -147,6 +175,44 @@ struct SettingsView: View {
     private func clearAPIKey() {
         UserDefaults.standard.removeObject(forKey: apiKeyKey)
         apiKey = ""
+        testResult = ""
+    }
+
+    private func testAPIKey() async {
+        guard let key = UserDefaults.standard.string(forKey: apiKeyKey), !key.isEmpty else {
+            testResult = "Error: No API key stored"
+            return
+        }
+
+        isTesting = true
+        testResult = ""
+
+        // Test with a simple models endpoint
+        guard let url = URL(string: "https://api.openai.com/v1/models") else {
+            testResult = "Error: Invalid URL"
+            isTesting = false
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
+
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 200 {
+                    testResult = "✅ Success! API key is valid"
+                } else if httpResponse.statusCode == 401 {
+                    testResult = "❌ Invalid API key (401 Unauthorized)"
+                } else {
+                    testResult = "❌ Error: HTTP \(httpResponse.statusCode)"
+                }
+            }
+        } catch {
+            testResult = "❌ Network error: \(error.localizedDescription)"
+        }
+
+        isTesting = false
     }
 }
 
