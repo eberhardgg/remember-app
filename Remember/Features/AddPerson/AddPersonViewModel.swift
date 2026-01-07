@@ -103,30 +103,39 @@ final class AddPersonViewModel {
     }
 
     private func transcribeAudio() async {
-        guard let url = audioURL else { return }
+        guard let url = audioURL else {
+            print("[AddPersonVM] No audio URL, generating sketch without transcript")
+            await generateSketch()
+            return
+        }
 
         isProcessing = true
+        print("[AddPersonVM] Starting transcription...")
 
         let hasPermission = await transcriptService.requestPermission()
-        guard hasPermission else {
+        if !hasPermission {
+            print("[AddPersonVM] No speech permission, generating sketch without transcript")
+            // Still generate a sketch even without transcript
+            await generateSketch()
             isProcessing = false
-            // Continue without transcript - not critical
             return
         }
 
         do {
             let text = try await transcriptService.transcribe(audioURL: url)
+            print("[AddPersonVM] Transcription succeeded: \(text.prefix(50))...")
             transcript = text
 
             // Extract keywords
             let parser = KeywordParser()
             keywords = parser.extractKeywords(from: text)
+            print("[AddPersonVM] Extracted keywords: \(keywords)")
 
             // Generate sketch
             await generateSketch()
         } catch {
             // Transcription failed - continue without it
-            print("Transcription failed: \(error)")
+            print("[AddPersonVM] Transcription failed: \(error)")
             // Still try to generate a default sketch
             await generateSketch()
         }
@@ -135,13 +144,21 @@ final class AddPersonViewModel {
     }
 
     func generateSketch() async {
-        guard let person = person else { return }
+        print("[AddPersonVM] generateSketch called")
+        guard let person = person else {
+            print("[AddPersonVM] ERROR: person is nil!")
+            return
+        }
+        print("[AddPersonVM] person exists: \(person.name)")
 
         isProcessing = true
 
         // Check if OpenAI will be used
-        let hasAPIKey = UserDefaults.standard.string(forKey: "openai_api_key")?.isEmpty == false
+        let apiKeyValue = UserDefaults.standard.string(forKey: "openai_api_key")
+        let hasAPIKey = apiKeyValue?.isEmpty == false
         let hasTranscript = transcript?.isEmpty == false
+        print("[AddPersonVM] hasAPIKey: \(hasAPIKey), hasTranscript: \(hasTranscript)")
+        print("[AddPersonVM] API key length: \(apiKeyValue?.count ?? 0)")
 
         if hasAPIKey && hasTranscript {
             sketchSource = "Using OpenAI DALL-E 3..."
@@ -167,9 +184,35 @@ final class AddPersonViewModel {
                 sketchSource = "Generated locally"
             }
         } catch {
-            self.error = error
-            self.showError = true
+            print("[AddPersonVM] Sketch generation error: \(error)")
             sketchSource = "Error: \(error.localizedDescription)"
+
+            // Try local fallback if OpenAI failed
+            if hasAPIKey && hasTranscript {
+                print("[AddPersonVM] OpenAI failed, trying local fallback...")
+                sketchSource = "OpenAI failed, using local sketch"
+                do {
+                    let fileService = FileService()
+                    let localRenderer = SketchRenderer()
+                    let keywordParser = KeywordParser()
+                    let features = keywordParser.parse(keywords)
+                    if let image = localRenderer.render(features: features, variant: 0),
+                       let data = image.pngData() {
+                        let path = try fileService.saveSketch(data: data, for: person.id)
+                        sketchPath = path
+                        person.sketchImagePath = path
+                        person.descriptorKeywords = keywords
+                        sketchSource = "Generated locally (OpenAI failed)"
+                    }
+                } catch {
+                    print("[AddPersonVM] Local fallback also failed: \(error)")
+                    self.error = error
+                    self.showError = true
+                }
+            } else {
+                self.error = error
+                self.showError = true
+            }
         }
 
         isProcessing = false

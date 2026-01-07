@@ -40,6 +40,18 @@ struct VoiceRambleView: View {
                 }
                 .padding()
             }
+
+            // Skip button for testing
+            Button {
+                Task {
+                    await viewModel.generateSketch()
+                }
+            } label: {
+                Text("Skip (no description)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.bottom, 16)
         }
         .navigationTitle("Voice Description")
         // Auto-advance when sketch is ready
