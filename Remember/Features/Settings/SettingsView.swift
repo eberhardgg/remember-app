@@ -6,6 +6,7 @@ struct SettingsView: View {
     @State private var showSaveConfirmation: Bool = false
     @State private var testResult: String = ""
     @State private var isTesting: Bool = false
+    @State private var selectedStyle: IllustrationStyle = .current
 
     private let apiKeyKey = "openai_api_key"
 
@@ -118,6 +119,38 @@ struct SettingsView: View {
                             clearAPIKey()
                         } label: {
                             Text("Remove API Key")
+                        }
+                    }
+                }
+
+                Section {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Illustration Style")
+                            .font(.headline)
+
+                        Text("Choose how your sketches will look when generated with DALL-E.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, 4)
+
+                    ForEach(IllustrationStyle.allCases, id: \.self) { style in
+                        Button {
+                            selectedStyle = style
+                            IllustrationStyle.current = style
+                        } label: {
+                            HStack {
+                                Image(systemName: style.icon)
+                                    .frame(width: 24)
+                                    .foregroundStyle(selectedStyle == style ? Color.accentColor : Color.secondary)
+                                Text(style.displayName)
+                                    .foregroundStyle(Color.primary)
+                                Spacer()
+                                if selectedStyle == style {
+                                    Image(systemName: "checkmark")
+                                        .foregroundStyle(Color.accentColor)
+                                }
+                            }
                         }
                     }
                 }

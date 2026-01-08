@@ -73,17 +73,15 @@ final class OpenAIImageService: OpenAIImageServiceProtocol {
     }
 
     private func buildPrompt(from transcript: String, keywords: [String]) -> String {
-        // Build a courtroom sketch style prompt from the description
+        let style = IllustrationStyle.current
         let keywordString = keywords.isEmpty ? "" : " Key features: \(keywords.joined(separator: ", "))."
 
         let prompt = """
-        Courtroom sketch style portrait. Drawn with charcoal and soft pastels on cream-colored paper. \
-        Expressive, loose strokes characteristic of a skilled courtroom artist. \
-        Capture the likeness based on this description: \(transcript).\(keywordString) \
-        Head and shoulders view, dramatic lighting from the side, artistic and impressionistic but recognizable. \
-        The style should look like authentic courtroom art from a high-profile trial.
+        \(style.promptDescription) \
+        Capture the likeness based on this description: \(transcript).\(keywordString)
         """
 
+        print("[OpenAIImageService] Using style: \(style.displayName)")
         return prompt
     }
 
