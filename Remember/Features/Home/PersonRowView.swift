@@ -23,12 +23,6 @@ struct PersonRowView: View {
             }
 
             Spacer()
-
-            // Due indicator
-            if person.isDue {
-                Image(systemName: "clock.badge.exclamationmark")
-                    .foregroundStyle(.orange)
-            }
         }
         .padding(.vertical, 4)
     }

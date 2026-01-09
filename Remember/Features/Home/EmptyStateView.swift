@@ -95,14 +95,14 @@ struct EmptyStateView: View {
             }
 
             HStack(alignment: .top, spacing: 12) {
-                Image(systemName: "brain.head.profile")
+                Image(systemName: "magnifyingglass")
                     .foregroundStyle(Color.accentColor)
                     .frame(width: 24)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Practice recall")
+                    Text("Look them up")
                         .font(.subheadline)
                         .fontWeight(.medium)
-                    Text("Quick flashcard reviews help you remember")
+                    Text("Search by name, description, or use voice search")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

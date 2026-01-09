@@ -20,12 +20,6 @@ final class Person {
     // Visual preference
     var preferredVisualType: VisualType
 
-    // Review state (embedded, not a separate model)
-    var lastReviewedAt: Date?
-    var nextDueAt: Date
-    var easeFactor: Double
-    var intervalDays: Int
-
     init(name: String, context: String? = nil) {
         self.id = UUID()
         self.name = name
@@ -33,9 +27,6 @@ final class Person {
         self.createdAt = Date()
         self.descriptorKeywords = []
         self.preferredVisualType = .sketch
-        self.nextDueAt = Date()
-        self.easeFactor = 2.5
-        self.intervalDays = 1
     }
 
     /// Returns the URL for the preferred visual (sketch or photo)
@@ -50,15 +41,5 @@ final class Person {
             guard let path = photoImagePath else { return nil }
             return documentsURL?.appendingPathComponent(path)
         }
-    }
-
-    /// Whether this person is due for review
-    var isDue: Bool {
-        nextDueAt <= Date()
-    }
-
-    /// Days until next review (negative if overdue)
-    var daysUntilDue: Int {
-        Calendar.current.dateComponents([.day], from: Date(), to: nextDueAt).day ?? 0
     }
 }

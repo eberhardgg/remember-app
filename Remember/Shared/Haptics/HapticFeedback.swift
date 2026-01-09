@@ -63,21 +63,6 @@ enum HapticFeedback {
         heavy()
     }
 
-    /// Card flipped in review
-    static func cardFlipped() {
-        light()
-    }
-
-    /// Card swiped (got it or missed)
-    static func cardSwiped() {
-        medium()
-    }
-
-    /// Review session complete
-    static func reviewComplete() {
-        success()
-    }
-
     /// Person saved successfully
     static func personSaved() {
         success()

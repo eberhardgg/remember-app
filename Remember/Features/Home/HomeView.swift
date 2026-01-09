@@ -6,7 +6,6 @@ struct HomeView: View {
     @State private var viewModel: HomeViewModel?
     @State private var showingAddPerson = false
     @State private var showingQuickAdd = false
-    @State private var showingReview = false
     @State private var showingSettings = false
     @State private var selectedPerson: Person?
     @State private var searchText = ""
@@ -81,11 +80,6 @@ struct HomeView: View {
                     viewModel?.loadPeople()
                 })
             }
-            .sheet(isPresented: $showingReview) {
-                if let viewModel = viewModel {
-                    ReviewSessionView(reviewService: viewModel.reviewService)
-                }
-            }
             .sheet(item: $selectedPerson) { person in
                 PersonDetailView(person: person, onUpdate: {
                     viewModel?.loadPeople()
@@ -99,8 +93,7 @@ struct HomeView: View {
             if viewModel == nil {
                 let fileService = FileService()
                 let personService = PersonService(modelContext: modelContext, fileService: fileService)
-                let reviewService = ReviewService(modelContext: modelContext)
-                viewModel = HomeViewModel(personService: personService, reviewService: reviewService)
+                viewModel = HomeViewModel(personService: personService)
                 viewModel?.loadPeople()
 
                 // Initialize voice search services
@@ -131,10 +124,6 @@ struct HomeView: View {
             emptyState
         } else {
             List {
-                if viewModel.dueCount > 0 {
-                    reviewButton(dueCount: viewModel.dueCount)
-                }
-
                 ForEach(viewModel.people) { person in
                     PersonRowView(person: person)
                         .contentShape(Rectangle())
@@ -157,23 +146,6 @@ struct HomeView: View {
         EmptyStateView {
             showingAddPerson = true
         }
-    }
-
-    private func reviewButton(dueCount: Int) -> some View {
-        Button {
-            showingReview = true
-        } label: {
-            HStack {
-                Image(systemName: "brain.head.profile")
-                    .foregroundStyle(.tint)
-                Text("Review \(dueCount) \(dueCount == 1 ? "card" : "cards")")
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.vertical, 8)
-        }
-        .listRowBackground(Color.accentColor.opacity(0.1))
     }
 
     // MARK: - Voice Search

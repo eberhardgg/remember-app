@@ -8,7 +8,6 @@ struct PersonDetailView: View {
     let person: Person
     let onUpdate: () -> Void
 
-    @State private var showingReview = false
     @State private var showingEdit = false
     @State private var showingDeleteConfirmation = false
 
@@ -62,12 +61,6 @@ struct PersonDetailView: View {
                         .font(.caption)
                         .foregroundStyle(.tertiary)
 
-                    Divider()
-                        .padding(.horizontal)
-
-                    // Review state
-                    reviewStateSection
-
                     // Delete button
                     Button(role: .destructive) {
                         showingDeleteConfirmation = true
@@ -95,24 +88,6 @@ struct PersonDetailView: View {
                         showingEdit = true
                     }
                 }
-            }
-            .safeAreaInset(edge: .bottom) {
-                Button {
-                    showingReview = true
-                } label: {
-                    Label("Quiz me", systemImage: "brain.head.profile")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                }
-                .buttonStyle(.borderedProminent)
-                .padding()
-            }
-            .sheet(isPresented: $showingReview) {
-                ReviewSessionView(
-                    reviewService: ReviewService(modelContext: modelContext),
-                    singlePerson: person
-                )
             }
             .sheet(isPresented: $showingEdit) {
                 PersonEditView(person: person, onSave: {
@@ -156,45 +131,6 @@ struct PersonDetailView: View {
         }
     }
 
-    private var reviewStateSection: some View {
-        VStack(spacing: 12) {
-            HStack {
-                Text("Review Status")
-                    .font(.headline)
-                Spacer()
-            }
-
-            HStack {
-                VStack(alignment: .leading) {
-                    Text("Next review")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text(person.nextDueAt.formatted(date: .abbreviated, time: .omitted))
-                        .font(.subheadline)
-                }
-
-                Spacer()
-
-                VStack(alignment: .trailing) {
-                    Text("Interval")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text("\(person.intervalDays) \(person.intervalDays == 1 ? "day" : "days")")
-                        .font(.subheadline)
-                }
-            }
-
-            if person.isDue {
-                Label("Due for review", systemImage: "clock.badge.exclamationmark")
-                    .font(.caption)
-                    .foregroundStyle(.orange)
-            }
-        }
-        .padding()
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .padding(.horizontal)
-    }
 }
 
 #Preview {

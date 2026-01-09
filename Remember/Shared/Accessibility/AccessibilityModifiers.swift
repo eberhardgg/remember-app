@@ -4,30 +4,19 @@ import SwiftUI
 
 extension View {
     /// Adds accessibility for a person card
-    func personCardAccessibility(name: String, context: String?, isDue: Bool) -> some View {
+    func personCardAccessibility(name: String, context: String?) -> some View {
         self
             .accessibilityElement(children: .combine)
-            .accessibilityLabel(personCardLabel(name: name, context: context, isDue: isDue))
+            .accessibilityLabel(personCardLabel(name: name, context: context))
             .accessibilityHint("Double tap to view details")
     }
 
-    private func personCardLabel(name: String, context: String?, isDue: Bool) -> String {
+    private func personCardLabel(name: String, context: String?) -> String {
         var label = name
         if let context = context {
             label += ", \(context)"
         }
-        if isDue {
-            label += ", due for review"
-        }
         return label
-    }
-
-    /// Adds accessibility for a flashcard
-    func flashcardAccessibility(isRevealed: Bool, personName: String) -> some View {
-        self
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(isRevealed ? "Flashcard showing \(personName)" : "Flashcard, name hidden")
-            .accessibilityHint(isRevealed ? "Swipe right if you got it, left if you missed it" : "Double tap to reveal name")
     }
 
     /// Adds accessibility for the record button
@@ -62,18 +51,6 @@ enum AccessibilityAnnouncement {
 
     static func sketchGenerated() {
         announce("Memory sketch created")
-    }
-
-    static func reviewCorrect() {
-        announce("Correct! Moving to next card.")
-    }
-
-    static func reviewIncorrect() {
-        announce("Missed. Moving to next card.")
-    }
-
-    static func reviewComplete() {
-        announce("Review session complete")
     }
 
     static func personAdded(name: String) {
