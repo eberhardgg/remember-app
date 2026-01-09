@@ -76,13 +76,64 @@ final class OpenAIImageService: OpenAIImageServiceProtocol {
         let style = IllustrationStyle.current
         let keywordString = keywords.isEmpty ? "" : " Key features: \(keywords.joined(separator: ", "))."
 
+        // Extract origin/nationality for visual context
+        let originContext = extractOriginContext(from: transcript)
+
         let prompt = """
         \(style.promptDescription) \
-        Capture the likeness based on this description: \(transcript).\(keywordString)
+        Capture the likeness based on this description: \(transcript).\(keywordString)\(originContext) \
+        IMPORTANT: Pay close attention to any mentioned nationality, ethnicity, or country of origin - \
+        reflect this authentically in the person's appearance and optionally include subtle cultural or geographic elements in the background.
         """
 
         print("[OpenAIImageService] Using style: \(style.displayName)")
+        print("[OpenAIImageService] Origin context: \(originContext)")
         return prompt
+    }
+
+    private func extractOriginContext(from transcript: String) -> String {
+        let lowercased = transcript.lowercased()
+
+        // Map of countries/regions to visual context hints
+        let originHints: [String: String] = [
+            "colombia": " Colombian person, South American features.",
+            "guatemala": " Guatemalan person, Central American/Mayan heritage.",
+            "mexico": " Mexican person, Latin American features.",
+            "brazil": " Brazilian person, diverse Brazilian appearance.",
+            "argentina": " Argentine person, South American features.",
+            "peru": " Peruvian person, Andean heritage.",
+            "chile": " Chilean person, South American features.",
+            "spain": " Spanish person, Mediterranean features.",
+            "france": " French person, European features.",
+            "germany": " German person, Northern European features.",
+            "italy": " Italian person, Mediterranean features.",
+            "ireland": " Irish person, Celtic features.",
+            "china": " Chinese person, East Asian features.",
+            "japan": " Japanese person, East Asian features.",
+            "korea": " Korean person, East Asian features.",
+            "india": " Indian person, South Asian features.",
+            "vietnam": " Vietnamese person, Southeast Asian features.",
+            "thailand": " Thai person, Southeast Asian features.",
+            "philippines": " Filipino person, Southeast Asian features.",
+            "nigeria": " Nigerian person, West African features.",
+            "kenya": " Kenyan person, East African features.",
+            "ethiopia": " Ethiopian person, East African features.",
+            "egypt": " Egyptian person, North African/Middle Eastern features.",
+            "morocco": " Moroccan person, North African features.",
+            "iran": " Iranian/Persian person, Middle Eastern features.",
+            "turkey": " Turkish person, Mediterranean/Middle Eastern features.",
+            "russia": " Russian person, Eastern European features.",
+            "poland": " Polish person, Eastern European features.",
+            "ukraine": " Ukrainian person, Eastern European features."
+        ]
+
+        for (country, hint) in originHints {
+            if lowercased.contains(country) {
+                return hint
+            }
+        }
+
+        return ""
     }
 
     private func callDALLE3API(prompt: String, apiKey: String) async throws -> URL {

@@ -75,6 +75,32 @@ final class KeywordParser: KeywordParserProtocol {
         "dark skin": .dark, "deep skin": .dark
     ]
 
+    // Countries and regions for origin extraction
+    private let originKeywords: [String] = [
+        "colombia", "colombian", "guatemala", "guatemalan", "mexico", "mexican",
+        "brazil", "brazilian", "argentina", "argentine", "peru", "peruvian",
+        "chile", "chilean", "venezuela", "venezuelan", "ecuador", "ecuadorian",
+        "spain", "spanish", "france", "french", "germany", "german",
+        "italy", "italian", "ireland", "irish", "england", "english", "british",
+        "scotland", "scottish", "poland", "polish", "russia", "russian",
+        "ukraine", "ukrainian", "china", "chinese", "japan", "japanese",
+        "korea", "korean", "india", "indian", "vietnam", "vietnamese",
+        "thailand", "thai", "philippines", "filipino", "filipina",
+        "nigeria", "nigerian", "kenya", "kenyan", "ethiopia", "ethiopian",
+        "egypt", "egyptian", "morocco", "moroccan", "south africa", "south african",
+        "iran", "iranian", "persian", "turkey", "turkish", "israel", "israeli",
+        "canada", "canadian", "australia", "australian", "new zealand"
+    ]
+
+    // Additional descriptive keywords
+    private let descriptiveKeywords: [String] = [
+        "tall", "short", "average height", "slim", "thin", "heavy", "stocky",
+        "athletic", "muscular", "petite", "large", "broad shoulders",
+        "friendly", "serious", "warm smile", "friendly smile", "bright smile",
+        "kind eyes", "intense", "gentle", "quiet", "loud", "energetic",
+        "handsome", "beautiful", "attractive", "pretty", "cute"
+    ]
+
     // MARK: - Public Methods
 
     func extractKeywords(from transcript: String) -> [String] {
@@ -93,6 +119,21 @@ final class KeywordParser: KeywordParserProtocol {
         for phrase in allPhrases {
             if lowercased.contains(phrase) {
                 keywords.append(phrase)
+            }
+        }
+
+        // Extract origin/nationality
+        for origin in originKeywords {
+            if lowercased.contains(origin) {
+                keywords.append("from \(origin)")
+                break // Only include first match
+            }
+        }
+
+        // Extract descriptive keywords
+        for descriptor in descriptiveKeywords {
+            if lowercased.contains(descriptor) {
+                keywords.append(descriptor)
             }
         }
 
