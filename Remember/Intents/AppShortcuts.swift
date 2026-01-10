@@ -9,6 +9,7 @@ struct RememberAppShortcuts: AppShortcutsProvider {
                 "Remember someone in \(.applicationName)",
                 "Remember this person in \(.applicationName)",
                 "Save someone in \(.applicationName)",
+                "Add someone to \(.applicationName)",
                 "Add a person to \(.applicationName)",
                 "Remember a new person in \(.applicationName)"
             ],
