@@ -147,4 +147,69 @@ struct IntentParser {
     private static func capitalizeName(_ name: String) -> String {
         name.prefix(1).uppercased() + name.dropFirst().lowercased()
     }
+
+    // MARK: - Context Extraction
+
+    /// Extract meeting context from transcript (e.g., "at the conference" -> "Conference")
+    static func extractContext(from transcript: String) -> String? {
+        let lowercased = transcript.lowercased()
+
+        // Patterns: "at the [place]", "from [place]", "met at [place]", "met them at [place]"
+        let patterns: [(prefix: String, suffix: String?)] = [
+            ("met them at ", nil),
+            ("met her at ", nil),
+            ("met him at ", nil),
+            ("met at ", nil),
+            ("i met at ", nil),
+            ("from the ", nil),
+            ("from ", nil),
+            ("at the ", nil),
+            ("at a ", nil),
+            ("at ", nil),
+            ("works at ", nil),
+            ("working at ", nil),
+            ("my ", " neighbor"),  // "my neighbor" -> "Neighbor"
+            ("our ", nil),
+        ]
+
+        for (prefix, requiredSuffix) in patterns {
+            if let range = lowercased.range(of: prefix) {
+                let afterPrefix = String(lowercased[range.upperBound...])
+
+                // Handle special case like "my neighbor"
+                if let suffix = requiredSuffix {
+                    if afterPrefix.hasPrefix(suffix.trimmingCharacters(in: .whitespaces)) {
+                        return suffix.trimmingCharacters(in: .whitespaces).capitalized
+                    }
+                    continue
+                }
+
+                // Extract until end of phrase (comma, period, or common stop words)
+                let stopWords = [",", ".", " and ", " who ", " she ", " he ", " they ", " with "]
+                var contextEnd = afterPrefix.endIndex
+
+                for stop in stopWords {
+                    if let stopRange = afterPrefix.range(of: stop) {
+                        if stopRange.lowerBound < contextEnd {
+                            contextEnd = stopRange.lowerBound
+                        }
+                    }
+                }
+
+                let extracted = String(afterPrefix[..<contextEnd])
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+
+                // Validate: should be 2-40 chars, mostly letters/spaces
+                if extracted.count >= 2, extracted.count <= 40 {
+                    // Capitalize each word
+                    let formatted = extracted.split(separator: " ")
+                        .map { $0.prefix(1).uppercased() + $0.dropFirst().lowercased() }
+                        .joined(separator: " ")
+                    return formatted
+                }
+            }
+        }
+
+        return nil
+    }
 }

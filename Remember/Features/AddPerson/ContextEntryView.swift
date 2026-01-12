@@ -82,12 +82,18 @@ struct ContextEntryView: View {
     }
 
     private func saveAndComplete() {
-        do {
-            try viewModel.savePerson()
-            onComplete()
-        } catch {
-            viewModel.error = error
-            viewModel.showError = true
+        Task {
+            do {
+                try await viewModel.savePerson()
+                await MainActor.run {
+                    onComplete()
+                }
+            } catch {
+                await MainActor.run {
+                    viewModel.error = error
+                    viewModel.showError = true
+                }
+            }
         }
     }
 }

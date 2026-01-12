@@ -17,8 +17,17 @@ final class Person {
     var transcriptText: String?
     var descriptorKeywords: [String]
 
+    // Name etymology/meaning for memory hook
+    var nameMeaning: String?
+
     // Visual preference
     var preferredVisualType: VisualType
+
+    // Illustration style used for this person's sketch
+    var illustrationStyle: IllustrationStyle?
+
+    // AI-edited coherent description (cleaned up from voice ramble)
+    var editedDescription: String?
 
     init(name: String, context: String? = nil) {
         self.id = UUID()

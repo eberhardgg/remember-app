@@ -20,6 +20,14 @@ struct PersonRowView: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
+
+                // Show brief description or keywords preview
+                if let description = person.editedDescription ?? person.transcriptText, !description.isEmpty {
+                    Text(description)
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
             }
 
             Spacer()

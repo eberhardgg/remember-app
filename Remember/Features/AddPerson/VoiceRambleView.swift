@@ -5,6 +5,11 @@ struct VoiceRambleView: View {
     @Bindable var viewModel: AddPersonViewModel
     let onContinue: () -> Void
 
+    private var hasAPIKey: Bool {
+        guard let key = UserDefaults.standard.string(forKey: "openai_api_key") else { return false }
+        return !key.isEmpty
+    }
+
     var body: some View {
         VStack(spacing: 32) {
             Spacer()
@@ -19,6 +24,16 @@ struct VoiceRambleView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
+
+                // Show current illustration style
+                if hasAPIKey {
+                    HStack(spacing: 4) {
+                        Image(systemName: IllustrationStyle.current.icon)
+                        Text("\(IllustrationStyle.current.displayName) style")
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                }
             }
             .padding(.horizontal, 32)
 
@@ -71,8 +86,10 @@ struct VoiceRambleView: View {
         Button {
             Task {
                 if viewModel.isRecording {
+                    HapticFeedback.medium()
                     await viewModel.stopRecording()
                 } else {
+                    HapticFeedback.light()
                     await viewModel.startRecording()
                 }
             }

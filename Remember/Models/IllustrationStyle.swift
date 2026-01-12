@@ -75,7 +75,7 @@ enum IllustrationStyle: String, CaseIterable, Codable {
         get {
             guard let rawValue = UserDefaults.standard.string(forKey: storageKey),
                   let style = IllustrationStyle(rawValue: rawValue) else {
-                return .courtroomSketch
+                return .vintagePolaroid
             }
             return style
         }

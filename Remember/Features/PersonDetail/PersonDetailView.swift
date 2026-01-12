@@ -14,67 +14,55 @@ struct PersonDetailView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 24) {
-                    // Visual
-                    visualImage
-                        .frame(width: 200, height: 200)
-                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                        .shadow(radius: 10)
-                        .padding(.top, 24)
-
-                    // Name
+                VStack(spacing: 0) {
+                    // Name - large and prominent at top
                     Text(person.name)
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+                        .font(.system(size: 34, weight: .bold))
+                        .padding(.top, 24)
+                        .padding(.bottom, 20)
 
-                    // Context
-                    if let context = person.context {
-                        Label(context, systemImage: "mappin")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
+                    // Visual - Polaroid style card
+                    visualCard
+                        .padding(.horizontal, 40)
 
-                    // Keywords
-                    if !person.descriptorKeywords.isEmpty {
-                        KeywordTagsView(keywords: person.descriptorKeywords)
-                            .padding(.horizontal)
-                    }
-
-                    // Description/transcript
-                    if let transcript = person.transcriptText, !transcript.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Description")
+                    // Context pill
+                    if let context = person.context, !context.isEmpty {
+                        HStack(spacing: 4) {
+                            Image(systemName: "mappin")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(transcript)
+                            Text(context)
                                 .font(.subheadline)
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding()
-                        .background(Color(.secondarySystemBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .padding(.horizontal)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 20)
                     }
 
-                    // Added date
-                    Text("Added \(person.createdAt.formatted(date: .abbreviated, time: .omitted))")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
+                    // Description with bold keywords
+                    descriptionSection
+                        .padding(.top, 24)
+                        .padding(.horizontal, 24)
 
-                    // Delete button
-                    Button(role: .destructive) {
-                        showingDeleteConfirmation = true
-                    } label: {
-                        Label("Delete", systemImage: "trash")
-                            .frame(maxWidth: .infinity)
+                    // Metadata footer
+                    VStack(spacing: 16) {
+                        Divider()
+                            .padding(.horizontal, 24)
+
+                        Text("Added \(person.createdAt.formatted(date: .abbreviated, time: .omitted))")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+
+                        Button(role: .destructive) {
+                            showingDeleteConfirmation = true
+                        } label: {
+                            Text("Delete")
+                                .font(.subheadline)
+                        }
+                        .padding(.bottom, 24)
                     }
-                    .padding(.horizontal)
-                    .padding(.top, 16)
-
-                    Spacer()
+                    .padding(.top, 32)
                 }
             }
-            .navigationTitle("Details")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -105,11 +93,35 @@ struct PersonDetailView: View {
         }
     }
 
-    private func deletePerson() {
-        modelContext.delete(person)
-        try? modelContext.save()
-        onUpdate()
-        dismiss()
+    // MARK: - Visual Card (Polaroid style)
+
+    @ViewBuilder
+    private var visualCard: some View {
+        VStack(spacing: 0) {
+            // Image area
+            visualImage
+                .frame(height: 260)
+                .clipped()
+
+            // White bottom area (Polaroid style)
+            if let meaning = person.nameMeaning {
+                Text(meaning)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .italic()
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 4))
+        .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
+        .overlay(
+            RoundedRectangle(cornerRadius: 4)
+                .stroke(Color(.systemGray5), lineWidth: 1)
+        )
     }
 
     @ViewBuilder
@@ -120,9 +132,10 @@ struct PersonDetailView: View {
             Image(uiImage: uiImage)
                 .resizable()
                 .scaledToFill()
+                .frame(maxWidth: .infinity)
         } else {
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.secondary.opacity(0.2))
+            Rectangle()
+                .fill(Color(.secondarySystemBackground))
                 .overlay {
                     Image(systemName: "person.fill")
                         .font(.system(size: 60))
@@ -131,6 +144,82 @@ struct PersonDetailView: View {
         }
     }
 
+    // MARK: - Description Section
+
+    @ViewBuilder
+    private var descriptionSection: some View {
+        let displayText = person.editedDescription ?? person.transcriptText
+
+        if let text = displayText, !text.isEmpty {
+            VStack(alignment: .leading, spacing: 0) {
+                highlightedDescription(text: text, keywords: person.descriptorKeywords)
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .lineSpacing(4)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func highlightedDescription(text: String, keywords: [String]) -> Text {
+        var result = Text("")
+        let lowercasedText = text.lowercased()
+
+        // Find all keyword ranges
+        var highlights: [(range: Range<String.Index>, keyword: String)] = []
+        for keyword in keywords {
+            let lowercasedKeyword = keyword.lowercased()
+            var searchStart = lowercasedText.startIndex
+            while let range = lowercasedText.range(of: lowercasedKeyword, range: searchStart..<lowercasedText.endIndex) {
+                highlights.append((range, keyword))
+                searchStart = range.upperBound
+            }
+        }
+
+        // Sort by start position
+        highlights.sort { $0.range.lowerBound < $1.range.lowerBound }
+
+        // Remove overlapping highlights (keep first)
+        var filteredHighlights: [(range: Range<String.Index>, keyword: String)] = []
+        for highlight in highlights {
+            if let last = filteredHighlights.last {
+                if highlight.range.lowerBound >= last.range.upperBound {
+                    filteredHighlights.append(highlight)
+                }
+            } else {
+                filteredHighlights.append(highlight)
+            }
+        }
+
+        // Build attributed text
+        var currentIndex = text.startIndex
+        for highlight in filteredHighlights {
+            // Add non-highlighted text before this keyword
+            if currentIndex < highlight.range.lowerBound {
+                let normalText = String(text[currentIndex..<highlight.range.lowerBound])
+                result = result + Text(normalText)
+            }
+            // Add highlighted keyword (use original case from text)
+            let originalKeyword = String(text[highlight.range])
+            result = result + Text(originalKeyword).bold()
+            currentIndex = highlight.range.upperBound
+        }
+
+        // Add remaining text
+        if currentIndex < text.endIndex {
+            let remainingText = String(text[currentIndex..<text.endIndex])
+            result = result + Text(remainingText)
+        }
+
+        return result
+    }
+
+    private func deletePerson() {
+        modelContext.delete(person)
+        try? modelContext.save()
+        onUpdate()
+        dismiss()
+    }
 }
 
 #Preview {

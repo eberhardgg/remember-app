@@ -22,8 +22,10 @@ struct AddPersonFlow: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
+                    if currentStep != .rehearsal {
+                        Button("Cancel") {
+                            dismiss()
+                        }
                     }
                 }
             }
@@ -45,7 +47,7 @@ struct AddPersonFlow: View {
             )
             currentStep = .name
         }
-        .interactiveDismissDisabled(currentStep != .name)
+        .interactiveDismissDisabled(currentStep != .name && currentStep != .rehearsal)
     }
 
     @ViewBuilder
@@ -63,16 +65,49 @@ struct AddPersonFlow: View {
             SketchPreviewView(viewModel: viewModel, onAddPhoto: {
                 currentStep = .photo
             }) {
-                currentStep = .context
+                // Skip context if already extracted from transcript
+                if !viewModel.context.isEmpty {
+                    Task {
+                        try? await viewModel.savePerson()
+                        await MainActor.run {
+                            currentStep = .rehearsal
+                        }
+                    }
+                } else {
+                    currentStep = .context
+                }
             }
         case .photo:
             PhotoAttachView(viewModel: viewModel) {
-                currentStep = .context
+                // Skip context if already extracted from transcript
+                if !viewModel.context.isEmpty {
+                    Task {
+                        try? await viewModel.savePerson()
+                        await MainActor.run {
+                            currentStep = .rehearsal
+                        }
+                    }
+                } else {
+                    currentStep = .context
+                }
             }
         case .context:
             ContextEntryView(viewModel: viewModel) {
-                onComplete()
-                dismiss()
+                currentStep = .rehearsal
+            }
+        case .rehearsal:
+            if let person = viewModel.person {
+                RehearsalPromptView(person: person) {
+                    onComplete()
+                    dismiss()
+                }
+            } else {
+                // Fallback if person not available
+                EmptyView()
+                    .onAppear {
+                        onComplete()
+                        dismiss()
+                    }
             }
         }
     }
@@ -84,6 +119,7 @@ enum AddPersonStep {
     case sketch
     case photo
     case context
+    case rehearsal
 }
 
 #Preview {

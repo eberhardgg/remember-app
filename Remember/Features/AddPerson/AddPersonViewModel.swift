@@ -29,6 +29,9 @@ final class AddPersonViewModel {
     var sketchPath: String?
     var sketchVariant: Int = 0
 
+    // Synthesized description (AI-cleaned version of transcript)
+    var synthesizedDescription: String?
+
     // Photo state
     var photoPath: String?
 
@@ -130,6 +133,13 @@ final class AddPersonViewModel {
             let parser = KeywordParser()
             keywords = parser.extractKeywords(from: text)
             print("[AddPersonVM] Extracted keywords: \(keywords)")
+
+            // Extract context from transcript (e.g., "met at the conference")
+            if let extractedContext = IntentParser.extractContext(from: text) {
+                context = extractedContext
+                person?.context = extractedContext
+                print("[AddPersonVM] Extracted context: \(extractedContext)")
+            }
 
             // Generate sketch
             await generateSketch()
@@ -315,7 +325,7 @@ final class AddPersonViewModel {
         isProcessing = false
     }
 
-    func savePerson() throws {
+    func savePerson() async throws {
         guard let person = person else { return }
 
         // Save transcript if we have one
@@ -326,6 +336,32 @@ final class AddPersonViewModel {
         // Save audio path
         if let audioURL = audioURL {
             person.audioNotePath = "audio/\(person.id.uuidString).m4a"
+        }
+
+        // Look up name meaning for memory hook
+        person.nameMeaning = NameMeaningService.shared.meaning(for: person.name)
+
+        // Save the illustration style used
+        person.illustrationStyle = IllustrationStyle.current
+
+        // Use synthesized description if already generated, otherwise try to generate
+        if let synthesized = synthesizedDescription, !synthesized.isEmpty {
+            person.editedDescription = synthesized
+        } else if let transcript = transcript, !transcript.isEmpty {
+            let descService = DescriptionService()
+            if descService.hasAPIKey {
+                do {
+                    let edited = try await descService.editDescription(
+                        rawTranscript: transcript,
+                        keywords: keywords,
+                        personName: person.name
+                    )
+                    person.editedDescription = edited
+                } catch {
+                    // Silently fail - we still have the raw transcript
+                    print("Failed to generate edited description: \(error)")
+                }
+            }
         }
 
         modelContext.insert(person)
