@@ -31,38 +31,44 @@ enum IllustrationStyle: String, CaseIterable, Codable {
         switch self {
         case .courtroomSketch:
             return """
-            Courtroom sketch style portrait. Drawn with charcoal and soft pastels on cream-colored paper. \
+            Courtroom sketch style CARICATURE portrait. Drawn with charcoal and soft pastels on cream-colored paper. \
             Expressive, loose strokes characteristic of a skilled courtroom artist. \
-            Head and shoulders view, dramatic lighting from the side, artistic and impressionistic but recognizable. \
-            The style should look like authentic courtroom art from a high-profile trial.
+            EXAGGERATE distinctive features like a political cartoonist would - big noses bigger, prominent chins more pronounced. \
+            Head and shoulders view, dramatic lighting from the side. \
+            Make the person INSTANTLY RECOGNIZABLE through exaggerated but tasteful features.
             """
         case .popArt:
             return """
-            Pop art portrait in the style of Andy Warhol and Roy Lichtenstein. \
+            Pop art CARICATURE portrait in the style of Andy Warhol meets political cartoon. \
             Bold, flat colors with high contrast. Ben-Day dots pattern in the background. \
             Thick black outlines, limited color palette with vibrant primary colors. \
-            Head and shoulders view, stylized and graphic like a screen print.
+            EXAGGERATE the most distinctive facial features - this should be a memorable caricature, not a realistic portrait. \
+            Head and shoulders view, stylized and graphic like an editorial cartoon screen print.
             """
         case .pixar3D:
             return """
-            3D animated character portrait in the style of Pixar and Disney Animation Studios. \
+            3D animated CARICATURE character portrait in the style of Pixar and Disney Animation Studios. \
             Smooth, stylized features with expressive eyes. Soft, appealing lighting. \
-            Slightly exaggerated proportions for charm. Rendered look with subtle subsurface scattering on skin. \
-            Head and shoulders view, friendly and approachable character design.
+            EXAGGERATE distinctive features for charm and memorability - like a Pixar character designer would. \
+            Big ears should be bigger, round faces rounder, long noses longer. \
+            Head and shoulders view, friendly but distinctively caricatured character design.
             """
         case .vintagePolaroid:
             return """
-            Vintage Polaroid instant photo style portrait. \
+            Vintage Polaroid instant photo style portrait with CARICATURE elements. \
             Slightly faded colors with warm nostalgic tones. Soft focus with slight vignetting. \
-            Natural, candid moment captured. Subtle film grain and light leaks. \
+            While maintaining the photo aesthetic, SUBTLY EXAGGERATE the person's most distinctive features \
+            to make them more memorable and recognizable. \
             The characteristic Polaroid white border frame. Authentic 1970s-80s instant camera aesthetic.
             """
         case .anime:
             return """
-            Japanese anime style portrait. Clean, precise linework with cel-shaded coloring. \
+            Japanese anime style CARICATURE portrait with exaggerated distinctive features. \
+            Clean, precise linework with cel-shaded coloring. \
             Large expressive eyes with detailed highlights. Stylized hair with defined strands. \
-            Soft skin shading in anime convention. Head and shoulders view. \
-            High quality anime illustration style like Studio Ghibli or modern seasonal anime.
+            EXAGGERATE the person's unique features in anime style - distinctive noses, hair styles, facial shapes. \
+            Make them look like a memorable anime character based on their real features. \
+            Head and shoulders view. High quality anime illustration style.
             """
         }
     }

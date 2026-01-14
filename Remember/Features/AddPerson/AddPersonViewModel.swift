@@ -14,6 +14,7 @@ final class AddPersonViewModel {
     // Form state
     var name: String = ""
     var context: String = ""
+    var selectedCategory: PersonCategory?
 
     // Recording state
     var isRecording: Bool = false
@@ -118,6 +119,8 @@ final class AddPersonViewModel {
         let hasPermission = await transcriptService.requestPermission()
         if !hasPermission {
             print("[AddPersonVM] No speech permission, generating sketch without transcript")
+            self.error = TranscriptServiceError.permissionDenied
+            self.showError = true
             // Still generate a sketch even without transcript
             await generateSketch()
             isProcessing = false
@@ -144,8 +147,10 @@ final class AddPersonViewModel {
             // Generate sketch
             await generateSketch()
         } catch {
-            // Transcription failed - continue without it
+            // Transcription failed - show error but still generate local sketch
             print("[AddPersonVM] Transcription failed: \(error)")
+            self.error = error
+            self.showError = true
             // Still try to generate a default sketch
             await generateSketch()
         }
@@ -338,6 +343,9 @@ final class AddPersonViewModel {
             person.audioNotePath = "audio/\(person.id.uuidString).m4a"
         }
 
+        // Save category
+        person.category = selectedCategory
+
         // Look up name meaning for memory hook
         person.nameMeaning = NameMeaningService.shared.meaning(for: person.name)
 
@@ -351,12 +359,13 @@ final class AddPersonViewModel {
             let descService = DescriptionService()
             if descService.hasAPIKey {
                 do {
-                    let edited = try await descService.editDescription(
+                    let result = try await descService.editDescriptionWithKeywords(
                         rawTranscript: transcript,
                         keywords: keywords,
                         personName: person.name
                     )
-                    person.editedDescription = edited
+                    person.editedDescription = result.description
+                    person.highlightKeywords = result.keywordsToHighlight
                 } catch {
                     // Silently fail - we still have the raw transcript
                     print("Failed to generate edited description: \(error)")

@@ -4,22 +4,33 @@ import SwiftData
 struct PeopleListView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Person.name) private var people: [Person]
+    @Query(sort: \PersonCategory.sortOrder) private var categories: [PersonCategory]
 
     @State private var showingAddPerson = false
     @State private var showingQuickAdd = false
     @State private var selectedPerson: Person?
     @State private var searchText = ""
+    @State private var selectedCategoryFilter: PersonCategory?
 
     var filteredPeople: [Person] {
-        if searchText.isEmpty {
-            return people
+        var result = people
+
+        // Category filter
+        if let category = selectedCategoryFilter {
+            result = result.filter { $0.category?.id == category.id }
         }
-        return people.filter { person in
-            person.name.localizedCaseInsensitiveContains(searchText) ||
-            (person.context?.localizedCaseInsensitiveContains(searchText) ?? false) ||
-            (person.transcriptText?.localizedCaseInsensitiveContains(searchText) ?? false) ||
-            person.descriptorKeywords.contains { $0.localizedCaseInsensitiveContains(searchText) }
+
+        // Search filter
+        if !searchText.isEmpty {
+            result = result.filter { person in
+                person.name.localizedCaseInsensitiveContains(searchText) ||
+                (person.context?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                (person.transcriptText?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                person.descriptorKeywords.contains { $0.localizedCaseInsensitiveContains(searchText) }
+            }
         }
+
+        return result
     }
 
     var body: some View {
@@ -28,7 +39,10 @@ struct PeopleListView: View {
                 if people.isEmpty {
                     emptyState
                 } else {
-                    peopleList
+                    VStack(spacing: 0) {
+                        categoryFilterBar
+                        peopleList
+                    }
                 }
             }
             .navigationTitle("People")
@@ -64,6 +78,30 @@ struct PeopleListView: View {
         }
     }
 
+    private var categoryFilterBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                FilterChip(
+                    label: "All",
+                    isSelected: selectedCategoryFilter == nil,
+                    action: { selectedCategoryFilter = nil }
+                )
+
+                ForEach(categories) { category in
+                    FilterChip(
+                        label: category.name,
+                        icon: category.systemImageName,
+                        isSelected: selectedCategoryFilter?.id == category.id,
+                        action: { selectedCategoryFilter = category }
+                    )
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+        }
+        .background(Color(.systemGroupedBackground))
+    }
+
     private var peopleList: some View {
         List {
             Section {
@@ -76,8 +114,13 @@ struct PeopleListView: View {
                 }
                 .onDelete(perform: deletePeople)
             } header: {
-                Text("\(people.count) \(people.count == 1 ? "person" : "people")")
-                    .textCase(nil)
+                if selectedCategoryFilter != nil {
+                    Text("\(filteredPeople.count) \(filteredPeople.count == 1 ? "person" : "people") in \(selectedCategoryFilter!.name)")
+                        .textCase(nil)
+                } else {
+                    Text("\(people.count) \(people.count == 1 ? "person" : "people")")
+                        .textCase(nil)
+                }
             }
         }
         .listStyle(.insetGrouped)
@@ -107,7 +150,33 @@ struct PeopleListView: View {
     }
 }
 
+private struct FilterChip: View {
+    let label: String
+    var icon: String? = nil
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                if let icon = icon {
+                    Image(systemName: icon)
+                        .font(.caption)
+                }
+                Text(label)
+                    .font(.subheadline)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(isSelected ? Color.accentColor : Color(.secondarySystemBackground))
+            .foregroundStyle(isSelected ? .white : .primary)
+            .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 #Preview {
     PeopleListView()
-        .modelContainer(for: Person.self, inMemory: true)
+        .modelContainer(for: [Person.self, PersonCategory.self], inMemory: true)
 }

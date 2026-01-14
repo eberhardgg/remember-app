@@ -29,12 +29,19 @@ final class Person {
     // AI-edited coherent description (cleaned up from voice ramble)
     var editedDescription: String?
 
+    // Keywords to highlight in the edited description (identified by AI)
+    var highlightKeywords: [String] = []
+
+    // Category for organizing people
+    var category: PersonCategory?
+
     init(name: String, context: String? = nil) {
         self.id = UUID()
         self.name = name
         self.context = context
         self.createdAt = Date()
         self.descriptorKeywords = []
+        self.highlightKeywords = []
         self.preferredVisualType = .sketch
     }
 

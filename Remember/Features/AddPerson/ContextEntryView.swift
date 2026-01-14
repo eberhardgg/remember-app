@@ -3,6 +3,7 @@ import SwiftData
 
 struct ContextEntryView: View {
     @Bindable var viewModel: AddPersonViewModel
+    @Query(sort: \PersonCategory.sortOrder) private var categories: [PersonCategory]
     let onComplete: () -> Void
 
     @FocusState private var isFocused: Bool
@@ -39,6 +40,23 @@ struct ContextEntryView: View {
             // Quick suggestions
             suggestionsView
                 .padding(.horizontal, 24)
+
+            // Category picker
+            VStack(spacing: 12) {
+                Text("Category")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        categoryButton(nil, label: "None", icon: "xmark.circle")
+                        ForEach(categories) { category in
+                            categoryButton(category, label: category.name, icon: category.systemImageName)
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                }
+            }
 
             Spacer()
 
@@ -79,6 +97,22 @@ struct ContextEntryView: View {
                 }
             }
         }
+    }
+
+    @ViewBuilder
+    private func categoryButton(_ category: PersonCategory?, label: String, icon: String) -> some View {
+        let isSelected = viewModel.selectedCategory?.id == category?.id
+        Button {
+            viewModel.selectedCategory = category
+        } label: {
+            Label(label, systemImage: icon)
+                .font(.subheadline)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(isSelected ? Color.accentColor.opacity(0.2) : Color.secondary.opacity(0.1))
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
     }
 
     private func saveAndComplete() {

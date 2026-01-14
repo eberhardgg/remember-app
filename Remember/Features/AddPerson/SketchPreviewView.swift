@@ -49,6 +49,17 @@ struct SketchPreviewView: View {
                 }
             }
 
+            // Sketch source indicator (for debugging)
+            if !viewModel.sketchSource.isEmpty {
+                Text(viewModel.sketchSource)
+                    .font(.caption2)
+                    .foregroundStyle(viewModel.sketchSource.contains("OpenAI") ? .green : .orange)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color(.secondarySystemBackground))
+                    .clipShape(Capsule())
+            }
+
             // Name - large and prominent
             Text(viewModel.name)
                 .font(.system(size: 32, weight: .bold))

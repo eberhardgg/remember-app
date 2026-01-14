@@ -20,8 +20,14 @@ enum DescriptionServiceError: Error, LocalizedError {
     }
 }
 
+struct EditedDescriptionResult: Codable {
+    let description: String
+    let keywordsToHighlight: [String]
+}
+
 protocol DescriptionServiceProtocol {
     func editDescription(rawTranscript: String, keywords: [String], personName: String) async throws -> String
+    func editDescriptionWithKeywords(rawTranscript: String, keywords: [String], personName: String) async throws -> EditedDescriptionResult
 }
 
 final class DescriptionService: DescriptionServiceProtocol {
@@ -38,6 +44,11 @@ final class DescriptionService: DescriptionServiceProtocol {
     }
 
     func editDescription(rawTranscript: String, keywords: [String], personName: String) async throws -> String {
+        let result = try await editDescriptionWithKeywords(rawTranscript: rawTranscript, keywords: keywords, personName: personName)
+        return result.description
+    }
+
+    func editDescriptionWithKeywords(rawTranscript: String, keywords: [String], personName: String) async throws -> EditedDescriptionResult {
         guard let apiKey = apiKey, !apiKey.isEmpty else {
             throw DescriptionServiceError.noAPIKey
         }
@@ -47,10 +58,10 @@ final class DescriptionService: DescriptionServiceProtocol {
         let prompt = """
         You are helping someone remember a person they met. They recorded a voice memo describing this person, \
         but it's informal and may be incoherent or rambling. Your job is to turn it into a clean, \
-        concise 1-2 sentence description.
+        concise 1-2 sentence description with important keywords identified.
 
         Person's name: \(personName)
-        Keywords to preserve: \(keywordList)
+        Visual keywords from transcript: \(keywordList)
         Raw voice memo transcript: "\(rawTranscript)"
 
         Rules:
@@ -59,9 +70,11 @@ final class DescriptionService: DescriptionServiceProtocol {
         3. Include the key details naturally (age, profession, location, distinguishing features)
         4. Make it read smoothly and naturally
         5. Do NOT add any information not in the transcript
-        6. Do NOT use markdown or formatting - just plain text
+        6. Identify 2-5 of the most memorable/distinctive words or phrases in your description to highlight
+        7. Keywords to highlight should be the most useful for quickly recalling who this person is
 
-        Respond with ONLY the edited description, nothing else.
+        Respond with ONLY valid JSON in this exact format (no markdown, no code blocks):
+        {"description": "The cleaned description here", "keywordsToHighlight": ["keyword1", "keyword2"]}
         """
 
         guard let url = URL(string: baseURL) else {
@@ -78,7 +91,7 @@ final class DescriptionService: DescriptionServiceProtocol {
             "messages": [
                 ["role": "user", "content": prompt]
             ],
-            "max_tokens": 150,
+            "max_tokens": 200,
             "temperature": 0.3
         ]
 
@@ -107,6 +120,20 @@ final class DescriptionService: DescriptionServiceProtocol {
             throw DescriptionServiceError.invalidResponse
         }
 
-        return content.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Parse the JSON response
+        guard let jsonData = cleanedContent.data(using: .utf8) else {
+            throw DescriptionServiceError.invalidResponse
+        }
+
+        do {
+            let result = try JSONDecoder().decode(EditedDescriptionResult.self, from: jsonData)
+            return result
+        } catch {
+            // Fallback: if JSON parsing fails, return the content as description with no keywords
+            print("Failed to parse JSON response: \(cleanedContent)")
+            return EditedDescriptionResult(description: cleanedContent, keywordsToHighlight: [])
+        }
     }
 }

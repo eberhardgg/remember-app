@@ -13,8 +13,7 @@ platform :ios do
       archive_path: "build/Remember.xcarchive",
       output_directory: "build/export",
       export_options: {
-        method: "app-store-connect",
-        destination: "upload",
+        method: "app-store",
         signingStyle: "automatic"
       }
     )

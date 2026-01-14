@@ -152,7 +152,7 @@ struct PersonDetailView: View {
 
         if let text = displayText, !text.isEmpty {
             VStack(alignment: .leading, spacing: 0) {
-                highlightedDescription(text: text, keywords: person.descriptorKeywords)
+                highlightedDescription(text: text, keywords: person.highlightKeywords.isEmpty ? person.descriptorKeywords : person.highlightKeywords)
                     .font(.body)
                     .foregroundStyle(.primary)
                     .lineSpacing(4)

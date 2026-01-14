@@ -4,6 +4,7 @@ import SwiftData
 struct PersonEditView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \PersonCategory.sortOrder) private var categories: [PersonCategory]
 
     let person: Person
     let onSave: () -> Void
@@ -12,8 +13,11 @@ struct PersonEditView: View {
     @State private var context: String
     @State private var description: String
     @State private var selectedStyle: IllustrationStyle
+    @State private var selectedCategory: PersonCategory?
     @State private var isRegenerating = false
+    @State private var isGenerating = false
     @State private var showRegenerateConfirm = false
+    @State private var showGenerateConfirm = false
 
     init(person: Person, onSave: @escaping () -> Void) {
         self.person = person
@@ -22,6 +26,7 @@ struct PersonEditView: View {
         _context = State(initialValue: person.context ?? "")
         _description = State(initialValue: person.transcriptText ?? "")
         _selectedStyle = State(initialValue: person.illustrationStyle ?? .current)
+        _selectedCategory = State(initialValue: person.category)
     }
 
     private var hasAPIKey: Bool {
@@ -35,6 +40,16 @@ struct PersonEditView: View {
                 Section("Name") {
                     TextField("Name", text: $name)
                         .textContentType(.name)
+                }
+
+                Section("Category") {
+                    Picker("Category", selection: $selectedCategory) {
+                        Text("None").tag(nil as PersonCategory?)
+                        ForEach(categories) { category in
+                            Label(category.name, systemImage: category.systemImageName)
+                                .tag(category as PersonCategory?)
+                        }
+                    }
                 }
 
                 Section("Where You Met") {
@@ -59,6 +74,31 @@ struct PersonEditView: View {
                     }
                 }
 
+                // Generate illustration section (for people without sketches)
+                if hasAPIKey && person.sketchImagePath == nil && !description.isEmpty {
+                    Section {
+                        Button {
+                            showGenerateConfirm = true
+                        } label: {
+                            HStack {
+                                if isGenerating {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                } else {
+                                    Image(systemName: "sparkles")
+                                }
+                                Text("Generate Illustration")
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(isGenerating || description.isEmpty)
+                    } footer: {
+                        Text("Creates a DALL-E illustration from the description (~$0.04)")
+                    }
+                }
+
+                // Regenerate illustration section (for people with sketches)
                 if hasAPIKey && person.sketchImagePath != nil {
                     Section {
                         VStack(alignment: .leading, spacing: 12) {
@@ -138,6 +178,16 @@ struct PersonEditView: View {
                     .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
+            .alert("Generate Illustration?", isPresented: $showGenerateConfirm) {
+                Button("Cancel", role: .cancel) { }
+                Button("Generate") {
+                    Task {
+                        await generateSketch()
+                    }
+                }
+            } message: {
+                Text("This will create a \(selectedStyle.displayName) style illustration using DALL-E (~$0.04).")
+            }
             .alert("Regenerate Illustration?", isPresented: $showRegenerateConfirm) {
                 Button("Cancel", role: .cancel) { }
                 Button("Regenerate") {
@@ -155,6 +205,7 @@ struct PersonEditView: View {
         person.name = name.trimmingCharacters(in: .whitespaces)
         person.context = context.isEmpty ? nil : context
         person.transcriptText = description.isEmpty ? nil : description
+        person.category = selectedCategory
 
         if !description.isEmpty {
             let parser = KeywordParser()
@@ -170,10 +221,49 @@ struct PersonEditView: View {
         }
     }
 
+    private func generateSketch() async {
+        isGenerating = true
+
+        IllustrationStyle.current = selectedStyle
+
+        let sketchService = SketchService(
+            fileService: FileService(),
+            keywordParser: KeywordParser(),
+            renderer: SketchRenderer()
+        )
+
+        do {
+            let path = try await sketchService.generateSketch(
+                from: description,
+                keywords: person.descriptorKeywords,
+                for: person.id
+            )
+            person.sketchImagePath = path
+            person.illustrationStyle = selectedStyle
+
+            // Also generate edited description
+            let descService = DescriptionService()
+            if descService.hasAPIKey {
+                let result = try await descService.editDescriptionWithKeywords(
+                    rawTranscript: description,
+                    keywords: person.descriptorKeywords,
+                    personName: person.name
+                )
+                person.editedDescription = result.description
+                person.highlightKeywords = result.keywordsToHighlight
+            }
+
+            try? modelContext.save()
+        } catch {
+            print("Generation failed: \(error)")
+        }
+
+        isGenerating = false
+    }
+
     private func regenerateSketch() async {
         isRegenerating = true
 
-        // Temporarily set the global style to the selected style
         let previousStyle = IllustrationStyle.current
         IllustrationStyle.current = selectedStyle
 
@@ -193,17 +283,17 @@ struct PersonEditView: View {
             person.sketchImagePath = path
             person.illustrationStyle = selectedStyle
 
-            // Also regenerate the edited description if we have a transcript
+            // Also regenerate the edited description with keywords
             if !transcript.isEmpty {
                 let descService = DescriptionService()
                 if descService.hasAPIKey {
-                    if let edited = try? await descService.editDescription(
+                    let result = try await descService.editDescriptionWithKeywords(
                         rawTranscript: transcript,
                         keywords: person.descriptorKeywords,
                         personName: person.name
-                    ) {
-                        person.editedDescription = edited
-                    }
+                    )
+                    person.editedDescription = result.description
+                    person.highlightKeywords = result.keywordsToHighlight
                 }
             }
 
@@ -212,7 +302,6 @@ struct PersonEditView: View {
             print("Regeneration failed: \(error)")
         }
 
-        // Restore previous global style
         IllustrationStyle.current = previousStyle
         isRegenerating = false
     }
@@ -220,4 +309,5 @@ struct PersonEditView: View {
 
 #Preview {
     PersonEditView(person: Person(name: "Sarah Chen", context: "Tech Conference"), onSave: {})
+        .modelContainer(for: [Person.self, PersonCategory.self], inMemory: true)
 }

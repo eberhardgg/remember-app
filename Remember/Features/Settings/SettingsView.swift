@@ -180,6 +180,14 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    NavigationLink {
+                        CategoryManagementView()
+                    } label: {
+                        Label("Categories", systemImage: "folder")
+                    }
+                }
+
+                Section {
                     HStack {
                         Text("Version")
                         Spacer()

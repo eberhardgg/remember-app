@@ -79,16 +79,78 @@ final class OpenAIImageService: OpenAIImageServiceProtocol {
         // Extract origin/nationality for visual context
         let originContext = extractOriginContext(from: transcript)
 
+        // Extract distinctive features to exaggerate for caricature effect
+        let distinctiveFeatures = extractDistinctiveFeatures(from: transcript, keywords: keywords)
+
         let prompt = """
         \(style.promptDescription) \
-        Capture the likeness based on this description: \(transcript).\(keywordString)\(originContext) \
+        Create a MEMORABLE CARICATURE based on this description: \(transcript).\(keywordString)\(originContext) \
+        \(distinctiveFeatures) \
+        CARICATURE INSTRUCTIONS: Exaggerate the most distinctive features to make this person instantly recognizable. \
+        If they have a big nose, make it bigger. If they have curly hair, make it curlier. \
+        Focus on what makes them UNIQUE and MEMORABLE - this is for remembering faces, not passport photos. \
         IMPORTANT: Pay close attention to any mentioned nationality, ethnicity, or country of origin - \
-        reflect this authentically in the person's appearance and optionally include subtle cultural or geographic elements in the background.
+        reflect this authentically in the person's appearance.
         """
 
         print("[OpenAIImageService] Using style: \(style.displayName)")
         print("[OpenAIImageService] Origin context: \(originContext)")
+        print("[OpenAIImageService] Distinctive features: \(distinctiveFeatures)")
         return prompt
+    }
+
+    private func extractDistinctiveFeatures(from transcript: String, keywords: [String]) -> String {
+        let lowercased = transcript.lowercased()
+        var features: [String] = []
+
+        // Physical features to look for and exaggerate
+        let featurePatterns: [(pattern: String, exaggeration: String)] = [
+            ("big nose", "EXAGGERATE: Make the nose prominently large and distinctive"),
+            ("small nose", "EXAGGERATE: Make the nose petite and delicate"),
+            ("long nose", "EXAGGERATE: Elongate the nose dramatically"),
+            ("curly hair", "EXAGGERATE: Make the curls bouncy and voluminous"),
+            ("straight hair", "EXAGGERATE: Make the hair sleek and flowing"),
+            ("bald", "EXAGGERATE: Emphasize the smooth, shiny scalp"),
+            ("beard", "EXAGGERATE: Make the beard fuller and more prominent"),
+            ("glasses", "EXAGGERATE: Make the glasses a defining feature"),
+            ("big eyes", "EXAGGERATE: Make the eyes large and expressive"),
+            ("small eyes", "EXAGGERATE: Make the eyes narrow and distinctive"),
+            ("tall", "EXAGGERATE: Emphasize height and elongated proportions"),
+            ("short", "EXAGGERATE: Emphasize compact, condensed proportions"),
+            ("muscular", "EXAGGERATE: Emphasize strength and defined muscles"),
+            ("thin", "EXAGGERATE: Emphasize slender, angular features"),
+            ("round face", "EXAGGERATE: Make the face rounder and fuller"),
+            ("angular face", "EXAGGERATE: Sharpen the jawline and cheekbones"),
+            ("freckles", "EXAGGERATE: Scatter more prominent freckles"),
+            ("dimples", "EXAGGERATE: Make the dimples deep and charming"),
+            ("gap teeth", "EXAGGERATE: Make the tooth gap distinctive and memorable"),
+            ("bushy eyebrows", "EXAGGERATE: Make the eyebrows thick and expressive"),
+            ("wrinkles", "EXAGGERATE: Emphasize character lines and wisdom"),
+            ("young", "EXAGGERATE: Emphasize youthful, fresh features"),
+            ("old", "EXAGGERATE: Emphasize mature, distinguished features")
+        ]
+
+        for (pattern, exaggeration) in featurePatterns {
+            if lowercased.contains(pattern) {
+                features.append(exaggeration)
+            }
+        }
+
+        // Also check keywords for features
+        for keyword in keywords {
+            let lowerKeyword = keyword.lowercased()
+            for (pattern, exaggeration) in featurePatterns {
+                if lowerKeyword.contains(pattern) && !features.contains(exaggeration) {
+                    features.append(exaggeration)
+                }
+            }
+        }
+
+        if features.isEmpty {
+            return "Find and exaggerate the most distinctive feature mentioned in the description."
+        }
+
+        return features.joined(separator: ". ")
     }
 
     private func extractOriginContext(from transcript: String) -> String {
