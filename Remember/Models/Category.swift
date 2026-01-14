@@ -24,6 +24,8 @@ final class PersonCategory {
         ("Friend", "person.2.fill"),
         ("Colleague", "briefcase.fill"),
         ("Parent", "figure.2.and.child.holdinghands"),
-        ("Kid", "figure.child")
+        ("Kid", "figure.child"),
+        ("Doorman", "door.left.hand.closed"),
+        ("Neighbor", "house.fill")
     ]
 }

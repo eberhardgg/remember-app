@@ -1,12 +1,16 @@
 import SwiftUI
+import SwiftData
 
 struct SettingsView: View {
+    @Environment(\.modelContext) private var modelContext
+
     @State private var apiKey: String = ""
     @State private var showAPIKey: Bool = false
     @State private var showSaveConfirmation: Bool = false
     @State private var testResult: String = ""
     @State private var isTesting: Bool = false
     @State private var selectedStyle: IllustrationStyle = .current
+    @State private var seedResult: String = ""
 
     private let apiKeyKey = "openai_api_key"
 
@@ -185,6 +189,29 @@ struct SettingsView: View {
                     } label: {
                         Label("Categories", systemImage: "folder")
                     }
+                }
+
+                Section {
+                    Button {
+                        let count = SeedDataService.seedPeople(in: modelContext)
+                        if count > 0 {
+                            seedResult = "Added \(count) people"
+                        } else {
+                            seedResult = "All people already exist"
+                        }
+                    } label: {
+                        HStack {
+                            Label("Import Sample People", systemImage: "person.crop.rectangle.stack")
+                            Spacer()
+                            if !seedResult.isEmpty {
+                                Text(seedResult)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                } footer: {
+                    Text("Adds doormen, neighbors, and parent friends to your list.")
                 }
 
                 Section {
