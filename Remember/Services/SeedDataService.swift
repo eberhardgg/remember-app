@@ -69,6 +69,44 @@ final class SeedDataService {
             description: "Arab parent at park",
             context: "Greengates parent friend",
             categoryName: "Parent"
+        ),
+
+        // Kat's friends at Greengates
+        SeedPerson(
+            name: "Lupita",
+            description: "7 years old, parents are German",
+            context: "Kat's friend at Greengates",
+            categoryName: "Kid"
+        ),
+        SeedPerson(
+            name: "Alyssa",
+            description: "7 years old",
+            context: "Kat's friend at Greengates",
+            categoryName: "Kid"
+        ),
+        SeedPerson(
+            name: "Ava",
+            description: "7 years old",
+            context: "Kat's friend at Greengates",
+            categoryName: "Kid"
+        ),
+        SeedPerson(
+            name: "Mila",
+            description: "7 years old",
+            context: "Kat's friend at Greengates",
+            categoryName: "Kid"
+        ),
+        SeedPerson(
+            name: "Nyra",
+            description: "7 years old",
+            context: "Kat's friend at Greengates",
+            categoryName: "Kid"
+        ),
+        SeedPerson(
+            name: "Alexa",
+            description: "7 years old",
+            context: "Kat's friend at Greengates",
+            categoryName: "Kid"
         )
     ]
 
