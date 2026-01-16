@@ -12,6 +12,17 @@ struct PeopleListView: View {
     @State private var searchText = ""
     @State private var selectedCategoryFilter: PersonCategory?
 
+    // Only show category filter when there are categories with people assigned
+    private var categoriesWithPeople: [PersonCategory] {
+        categories.filter { category in
+            people.contains { $0.category?.id == category.id }
+        }
+    }
+
+    private var shouldShowCategoryFilter: Bool {
+        !categoriesWithPeople.isEmpty
+    }
+
     var filteredPeople: [Person] {
         var result = people
 
@@ -40,26 +51,29 @@ struct PeopleListView: View {
                     emptyState
                 } else {
                     VStack(spacing: 0) {
-                        categoryFilterBar
+                        if shouldShowCategoryFilter {
+                            categoryFilterBar
+                        }
                         peopleList
                     }
                 }
             }
             .navigationTitle("People")
+            .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $searchText, prompt: "Search names...")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button {
-                            showingQuickAdd = true
-                        } label: {
-                            Label("Quick Add", systemImage: "plus")
-                        }
-
-                        Button {
                             showingAddPerson = true
                         } label: {
                             Label("Add with Voice", systemImage: "mic.fill")
+                        }
+
+                        Button {
+                            showingQuickAdd = true
+                        } label: {
+                            Label("Quick Add", systemImage: "square.and.pencil")
                         }
                     } label: {
                         Image(systemName: "plus")
@@ -87,7 +101,7 @@ struct PeopleListView: View {
                     action: { selectedCategoryFilter = nil }
                 )
 
-                ForEach(categories) { category in
+                ForEach(categoriesWithPeople) { category in
                     FilterChip(
                         label: category.name,
                         icon: category.systemImageName,

@@ -5,28 +5,20 @@ struct PersonRowView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Thumbnail
+            // Thumbnail - larger for better face recognition
             thumbnail
-                .frame(width: 50, height: 50)
+                .frame(width: 64, height: 64)
                 .clipShape(Circle())
 
-            // Info
-            VStack(alignment: .leading, spacing: 2) {
+            // Info - simplified to name + context only
+            VStack(alignment: .leading, spacing: 4) {
                 Text(person.name)
                     .font(.headline)
 
-                if let context = person.context {
+                if let context = person.context, !context.isEmpty {
                     Text(context)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                }
-
-                // Show brief description or keywords preview
-                if let description = person.editedDescription ?? person.transcriptText, !description.isEmpty {
-                    Text(description)
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                        .lineLimit(1)
                 }
             }
 
@@ -49,7 +41,7 @@ struct PersonRowView: View {
                 .fill(Color.secondary.opacity(0.2))
                 .overlay {
                     Text(person.name.prefix(1).uppercased())
-                        .font(.title2)
+                        .font(.title)
                         .foregroundStyle(.secondary)
                 }
         }

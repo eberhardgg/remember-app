@@ -25,20 +25,8 @@ struct PersonDetailView: View {
                     visualCard
                         .padding(.horizontal, 40)
 
-                    // Context pill
-                    if let context = person.context, !context.isEmpty {
-                        HStack(spacing: 4) {
-                            Image(systemName: "mappin")
-                                .font(.caption)
-                            Text(context)
-                                .font(.subheadline)
-                        }
-                        .foregroundStyle(.secondary)
-                        .padding(.top, 20)
-                    }
-
-                    // Description with bold keywords
-                    descriptionSection
+                    // Combined description (context + transcript)
+                    combinedDescriptionSection
                         .padding(.top, 24)
                         .padding(.horizontal, 24)
 
@@ -144,13 +132,20 @@ struct PersonDetailView: View {
         }
     }
 
-    // MARK: - Description Section
+    // MARK: - Combined Description Section
 
     @ViewBuilder
-    private var descriptionSection: some View {
-        let displayText = person.editedDescription ?? person.transcriptText
+    private var combinedDescriptionSection: some View {
+        let transcriptText = person.editedDescription ?? person.transcriptText
+        let context = person.context
 
-        if let text = displayText, !text.isEmpty {
+        // Build combined text: "Context. Transcript" or just one if other is empty
+        let combinedText: String? = {
+            let parts = [context, transcriptText].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+            return parts.isEmpty ? nil : parts.joined(separator: ". ")
+        }()
+
+        if let text = combinedText {
             VStack(alignment: .leading, spacing: 0) {
                 highlightedDescription(text: text, keywords: person.highlightKeywords.isEmpty ? person.descriptorKeywords : person.highlightKeywords)
                     .font(.body)

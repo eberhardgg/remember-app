@@ -86,11 +86,9 @@ final class OpenAIImageService: OpenAIImageServiceProtocol {
         \(style.promptDescription) \
         Create a MEMORABLE CARICATURE based on this description: \(transcript).\(keywordString)\(originContext) \
         \(distinctiveFeatures) \
-        CARICATURE INSTRUCTIONS: Exaggerate the most distinctive features to make this person instantly recognizable. \
+        CARICATURE INSTRUCTIONS: Exaggerate the most distinctive physical features to make this person instantly recognizable. \
         If they have a big nose, make it bigger. If they have curly hair, make it curlier. \
-        Focus on what makes them UNIQUE and MEMORABLE - this is for remembering faces, not passport photos. \
-        IMPORTANT: Pay close attention to any mentioned nationality, ethnicity, or country of origin - \
-        reflect this authentically in the person's appearance.
+        Focus on what makes them UNIQUE and MEMORABLE - this is for remembering faces, not passport photos.
         """
 
         print("[OpenAIImageService] Using style: \(style.displayName)")
@@ -156,37 +154,37 @@ final class OpenAIImageService: OpenAIImageServiceProtocol {
     private func extractOriginContext(from transcript: String) -> String {
         let lowercased = transcript.lowercased()
 
-        // Map of countries/regions to visual context hints
+        // Map of countries/regions to subtle visual hints - keep it light
         let originHints: [String: String] = [
-            "colombia": " Colombian person, South American features.",
-            "guatemala": " Guatemalan person, Central American/Mayan heritage.",
-            "mexico": " Mexican person, Latin American features.",
-            "brazil": " Brazilian person, diverse Brazilian appearance.",
-            "argentina": " Argentine person, South American features.",
-            "peru": " Peruvian person, Andean heritage.",
-            "chile": " Chilean person, South American features.",
-            "spain": " Spanish person, Mediterranean features.",
-            "france": " French person, European features.",
-            "germany": " German person, Northern European features.",
-            "italy": " Italian person, Mediterranean features.",
-            "ireland": " Irish person, Celtic features.",
-            "china": " Chinese person, East Asian features.",
-            "japan": " Japanese person, East Asian features.",
-            "korea": " Korean person, East Asian features.",
-            "india": " Indian person, South Asian features.",
-            "vietnam": " Vietnamese person, Southeast Asian features.",
-            "thailand": " Thai person, Southeast Asian features.",
-            "philippines": " Filipino person, Southeast Asian features.",
-            "nigeria": " Nigerian person, West African features.",
-            "kenya": " Kenyan person, East African features.",
-            "ethiopia": " Ethiopian person, East African features.",
-            "egypt": " Egyptian person, North African/Middle Eastern features.",
-            "morocco": " Moroccan person, North African features.",
-            "iran": " Iranian/Persian person, Middle Eastern features.",
-            "turkey": " Turkish person, Mediterranean/Middle Eastern features.",
-            "russia": " Russian person, Eastern European features.",
-            "poland": " Polish person, Eastern European features.",
-            "ukraine": " Ukrainian person, Eastern European features."
+            "colombia": " From Colombia.",
+            "guatemala": " From Guatemala.",
+            "mexico": " From Mexico.",
+            "brazil": " From Brazil.",
+            "argentina": " From Argentina.",
+            "peru": " From Peru.",
+            "chile": " From Chile.",
+            "spain": " From Spain.",
+            "france": " From France.",
+            "germany": " From Germany.",
+            "italy": " From Italy.",
+            "ireland": " From Ireland.",
+            "china": " From China.",
+            "japan": " From Japan.",
+            "korea": " From Korea.",
+            "india": " From India.",
+            "vietnam": " From Vietnam.",
+            "thailand": " From Thailand.",
+            "philippines": " From the Philippines.",
+            "nigeria": " From Nigeria.",
+            "kenya": " From Kenya.",
+            "ethiopia": " From Ethiopia.",
+            "egypt": " From Egypt.",
+            "morocco": " From Morocco.",
+            "iran": " From Iran.",
+            "turkey": " From Turkey.",
+            "russia": " From Russia.",
+            "poland": " From Poland.",
+            "ukraine": " From Ukraine."
         ]
 
         for (country, hint) in originHints {

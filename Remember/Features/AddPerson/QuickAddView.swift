@@ -28,9 +28,9 @@ struct QuickAddView: View {
                         .textContentType(.name)
                         .font(.title3)
                         .focused($nameFieldFocused)
-                }
 
-                Section("Category") {
+                    TextField("Where did you meet?", text: $context)
+
                     Picker("Category", selection: $selectedCategory) {
                         Text("None").tag(nil as PersonCategory?)
                         ForEach(categories) { category in
@@ -40,18 +40,16 @@ struct QuickAddView: View {
                     }
                 }
 
-                Section("Optional") {
-                    TextField("Where did you meet?", text: $context)
-
+                Section {
                     TextField("What do they look like?", text: $description, axis: .vertical)
                         .lineLimit(2...4)
-                }
 
-                if hasAPIKey && !description.isEmpty {
-                    Section {
+                    if hasAPIKey && !description.isEmpty {
                         Toggle("Generate illustration", isOn: $shouldGenerateSketch)
-                    } footer: {
-                        Text("Creates an AI illustration from the description (~$0.04)")
+                    }
+                } footer: {
+                    if hasAPIKey && !description.isEmpty && shouldGenerateSketch {
+                        Text("AI illustration costs ~$0.04")
                     }
                 }
             }
