@@ -20,7 +20,9 @@ platform :ios do
 
     upload_to_testflight(
       api_key_path: "#{ENV['HOME']}/.appstoreconnect/api_key.json",
-      skip_waiting_for_build_processing: true
+      distribute_external: true,
+      groups: ["Internal Testers"],
+      changelog: "Bug fixes and improvements"
     )
 
     # Commit version bump
