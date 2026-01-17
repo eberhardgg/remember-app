@@ -20,8 +20,7 @@ platform :ios do
 
     upload_to_testflight(
       api_key_path: "#{ENV['HOME']}/.appstoreconnect/api_key.json",
-      distribute_external: true,
-      groups: ["Internal Testers"],
+      distribute_external: false,
       changelog: "Bug fixes and improvements"
     )
 
