@@ -4,7 +4,7 @@ struct EmptyStateView: View {
     let onAddPerson: () -> Void
 
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: Spacing.lg) {
             Spacer()
 
             // Illustration
@@ -17,7 +17,7 @@ struct EmptyStateView: View {
                 .fontWeight(.semibold)
 
             // Description
-            VStack(spacing: 8) {
+            VStack(spacing: Spacing.xs) {
                 Text("Describe someone you just met")
                 Text("and never forget their name again.")
             }
@@ -29,22 +29,16 @@ struct EmptyStateView: View {
 
             // How it works
             howItWorks
-                .padding(.horizontal, 32)
+                .padding(.horizontal, Spacing.xl)
 
             Spacer()
 
             // CTA
-            Button {
+            PrimaryButton(title: "Add Someone", icon: "plus") {
                 onAddPerson()
-            } label: {
-                Label("Add Someone", systemImage: "plus")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
             }
-            .buttonStyle(.borderedProminent)
-            .padding(.horizontal, 24)
-            .padding(.bottom, 24)
+            .padding(.horizontal, Spacing.lg)
+            .padding(.bottom, Spacing.lg)
         }
     }
 
@@ -54,63 +48,55 @@ struct EmptyStateView: View {
                 .fill(Color.accentColor.opacity(0.1))
 
             Image(systemName: "person.2.fill")
-                .font(.system(size: 50))
+                .font(Typography.placeholderIconSmall)
                 .foregroundStyle(Color.accentColor)
         }
     }
 
     private var howItWorks: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text("How it works")
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
 
-            HStack(alignment: .top, spacing: 12) {
-                Image(systemName: "mic.fill")
-                    .foregroundStyle(Color.accentColor)
-                    .frame(width: 24)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Describe them")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    Text("Record a quick voice note about what they look like")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
+            howItWorksRow(
+                icon: "mic.fill",
+                title: "Describe them",
+                description: "Record a quick voice note about what they look like"
+            )
 
-            HStack(alignment: .top, spacing: 12) {
-                Image(systemName: "paintbrush.fill")
-                    .foregroundStyle(Color.accentColor)
-                    .frame(width: 24)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Get a memory sketch")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    Text("We create an abstract sketch from your description")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
+            howItWorksRow(
+                icon: "paintbrush.fill",
+                title: "Get a memory sketch",
+                description: "We create an abstract sketch from your description"
+            )
 
-            HStack(alignment: .top, spacing: 12) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(Color.accentColor)
-                    .frame(width: 24)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Look them up")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    Text("Search by name, description, or use voice search")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+            howItWorksRow(
+                icon: "magnifyingglass",
+                title: "Look them up",
+                description: "Search by name, description, or use voice search"
+            )
+        }
+        .padding(Spacing.md)
+        .background(Color.rememberSecondaryBackground)
+        .clipShape(RoundedRectangle(cornerRadius: Sizing.Radius.medium))
+    }
+
+    private func howItWorksRow(icon: String, title: String, description: String) -> some View {
+        HStack(alignment: .top, spacing: Spacing.sm) {
+            Image(systemName: icon)
+                .foregroundStyle(Color.accentColor)
+                .frame(width: Spacing.lg)
+            VStack(alignment: .leading, spacing: Spacing.xxs) {
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                Text(description)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
-        .padding()
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
 

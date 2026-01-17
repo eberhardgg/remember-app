@@ -146,67 +146,11 @@ struct PersonDetailView: View {
         }()
 
         if let text = combinedText {
-            VStack(alignment: .leading, spacing: 0) {
-                highlightedDescription(text: text, keywords: person.highlightKeywords.isEmpty ? person.descriptorKeywords : person.highlightKeywords)
-                    .font(.body)
-                    .foregroundStyle(.primary)
-                    .lineSpacing(4)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            let keywords = person.highlightKeywords.isEmpty ? person.descriptorKeywords : person.highlightKeywords
+            HighlightedText(text: text, keywords: keywords, font: .body, color: .primary)
+                .lineSpacing(4)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
-    }
-
-    private func highlightedDescription(text: String, keywords: [String]) -> Text {
-        var result = Text("")
-        let lowercasedText = text.lowercased()
-
-        // Find all keyword ranges
-        var highlights: [(range: Range<String.Index>, keyword: String)] = []
-        for keyword in keywords {
-            let lowercasedKeyword = keyword.lowercased()
-            var searchStart = lowercasedText.startIndex
-            while let range = lowercasedText.range(of: lowercasedKeyword, range: searchStart..<lowercasedText.endIndex) {
-                highlights.append((range, keyword))
-                searchStart = range.upperBound
-            }
-        }
-
-        // Sort by start position
-        highlights.sort { $0.range.lowerBound < $1.range.lowerBound }
-
-        // Remove overlapping highlights (keep first)
-        var filteredHighlights: [(range: Range<String.Index>, keyword: String)] = []
-        for highlight in highlights {
-            if let last = filteredHighlights.last {
-                if highlight.range.lowerBound >= last.range.upperBound {
-                    filteredHighlights.append(highlight)
-                }
-            } else {
-                filteredHighlights.append(highlight)
-            }
-        }
-
-        // Build attributed text
-        var currentIndex = text.startIndex
-        for highlight in filteredHighlights {
-            // Add non-highlighted text before this keyword
-            if currentIndex < highlight.range.lowerBound {
-                let normalText = String(text[currentIndex..<highlight.range.lowerBound])
-                result = result + Text(normalText)
-            }
-            // Add highlighted keyword (use original case from text)
-            let originalKeyword = String(text[highlight.range])
-            result = result + Text(originalKeyword).bold()
-            currentIndex = highlight.range.upperBound
-        }
-
-        // Add remaining text
-        if currentIndex < text.endIndex {
-            let remainingText = String(text[currentIndex..<text.endIndex])
-            result = result + Text(remainingText)
-        }
-
-        return result
     }
 
     private func deletePerson() {

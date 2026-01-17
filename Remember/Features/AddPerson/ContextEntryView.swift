@@ -9,10 +9,10 @@ struct ContextEntryView: View {
     @FocusState private var isFocused: Bool
 
     var body: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: Spacing.xl) {
             Spacer()
 
-            VStack(spacing: 16) {
+            VStack(spacing: Spacing.md) {
                 Text("Where did you meet?")
                     .font(.title2)
                     .fontWeight(.semibold)
@@ -32,45 +32,39 @@ struct ContextEntryView: View {
 
                 Rectangle()
                     .fill(Color.accentColor)
-                    .frame(height: 2)
-                    .frame(maxWidth: 200)
+                    .frame(height: Sizing.underline)
+                    .frame(maxWidth: Sizing.maxInputWidth)
             }
-            .padding(.horizontal, 40)
+            .padding(.horizontal, Spacing.xxl)
 
             // Quick suggestions
             suggestionsView
-                .padding(.horizontal, 24)
+                .padding(.horizontal, Spacing.lg)
 
             // Category picker
-            VStack(spacing: 12) {
+            VStack(spacing: Spacing.sm) {
                 Text("Category")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: Spacing.xs) {
                         categoryButton(nil, label: "None", icon: "xmark.circle")
                         ForEach(categories) { category in
                             categoryButton(category, label: category.name, icon: category.systemImageName)
                         }
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, Spacing.lg)
                 }
             }
 
             Spacer()
 
-            Button {
+            PrimaryButton(title: "Done") {
                 saveAndComplete()
-            } label: {
-                Text("Done")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
             }
-            .buttonStyle(.borderedProminent)
-            .padding(.horizontal, 24)
-            .padding(.bottom, 24)
+            .padding(.horizontal, Spacing.lg)
+            .padding(.bottom, Spacing.lg)
         }
         .navigationTitle("Context")
         .onAppear {

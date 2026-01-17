@@ -4,14 +4,16 @@ struct PersonRowView: View {
     let person: Person
 
     var body: some View {
-        HStack(spacing: 12) {
-            // Thumbnail - larger for better face recognition
-            thumbnail
-                .frame(width: 64, height: 64)
-                .clipShape(Circle())
+        HStack(spacing: Spacing.sm) {
+            // Thumbnail - async loaded for better performance
+            AsyncThumbnail(
+                url: person.preferredVisualURL,
+                placeholder: person.name,
+                size: Sizing.Avatar.medium
+            )
 
             // Info - simplified to name + context only
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xxs) {
                 Text(person.name)
                     .font(.headline)
 
@@ -24,27 +26,7 @@ struct PersonRowView: View {
 
             Spacer()
         }
-        .padding(.vertical, 4)
-    }
-
-    @ViewBuilder
-    private var thumbnail: some View {
-        if let url = person.preferredVisualURL,
-           let data = try? Data(contentsOf: url),
-           let uiImage = UIImage(data: data) {
-            Image(uiImage: uiImage)
-                .resizable()
-                .scaledToFill()
-        } else {
-            // Placeholder
-            Circle()
-                .fill(Color.secondary.opacity(0.2))
-                .overlay {
-                    Text(person.name.prefix(1).uppercased())
-                        .font(.title)
-                        .foregroundStyle(.secondary)
-                }
-        }
+        .padding(.vertical, Spacing.xxs)
     }
 }
 

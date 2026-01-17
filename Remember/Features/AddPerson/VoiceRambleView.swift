@@ -40,8 +40,16 @@ struct VoiceRambleView: View {
             Spacer()
 
             // Record button
-            recordButton
-                .padding(.bottom, 32)
+            RecordButton(isRecording: viewModel.isRecording) {
+                Task {
+                    if viewModel.isRecording {
+                        await viewModel.stopRecording()
+                    } else {
+                        await viewModel.startRecording()
+                    }
+                }
+            }
+            .padding(.bottom, Spacing.xl)
 
             Spacer()
 
@@ -56,17 +64,6 @@ struct VoiceRambleView: View {
                 .padding()
             }
 
-            // Skip button for testing
-            Button {
-                Task {
-                    await viewModel.generateSketch()
-                }
-            } label: {
-                Text("Skip (no description)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.bottom, 16)
         }
         .navigationTitle("Voice Description")
         // Auto-advance when sketch is ready
@@ -80,39 +77,6 @@ struct VoiceRambleView: View {
         } message: {
             Text(viewModel.error?.localizedDescription ?? "Something went wrong")
         }
-    }
-
-    private var recordButton: some View {
-        Button {
-            Task {
-                if viewModel.isRecording {
-                    HapticFeedback.medium()
-                    await viewModel.stopRecording()
-                } else {
-                    HapticFeedback.light()
-                    await viewModel.startRecording()
-                }
-            }
-        } label: {
-            ZStack {
-                Circle()
-                    .fill(viewModel.isRecording ? Color.red : Color.accentColor)
-                    .frame(width: 100, height: 100)
-                    .shadow(radius: viewModel.isRecording ? 10 : 5)
-
-                if viewModel.isRecording {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(.white)
-                        .frame(width: 32, height: 32)
-                } else {
-                    Image(systemName: "mic.fill")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.white)
-                }
-            }
-        }
-        .buttonStyle(.plain)
-        .animation(.easeInOut(duration: 0.2), value: viewModel.isRecording)
     }
 }
 

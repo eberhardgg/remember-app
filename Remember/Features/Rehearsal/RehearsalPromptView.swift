@@ -8,7 +8,7 @@ struct RehearsalPromptView: View {
     @State private var hasRehearsed = false
 
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: Spacing.lg) {
             Spacer()
 
             // Visual
@@ -18,13 +18,13 @@ struct RehearsalPromptView: View {
                 Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFill()
-                    .frame(width: 150, height: 150)
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                    .shadow(radius: 10)
+                    .frame(width: Sizing.Avatar.xlarge, height: Sizing.Avatar.xlarge)
+                    .clipShape(RoundedRectangle(cornerRadius: Sizing.Radius.xlarge))
+                    .shadow(radius: Shadow.large)
             }
 
             // Instruction
-            VStack(spacing: 12) {
+            VStack(spacing: Spacing.sm) {
                 Text("Say it out loud")
                     .font(.title2)
                     .fontWeight(.semibold)
@@ -33,13 +33,13 @@ struct RehearsalPromptView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
+                    .padding(.horizontal, Spacing.xl)
             }
 
             // The name to repeat
-            VStack(spacing: 8) {
+            VStack(spacing: Spacing.xs) {
                 Text(person.name)
-                    .font(.system(size: 36, weight: .bold))
+                    .font(Typography.rehearsalName)
 
                 if let meaning = person.nameMeaning {
                     Text(meaning)
@@ -48,37 +48,29 @@ struct RehearsalPromptView: View {
                         .italic()
                 }
             }
-            .padding(.vertical, 16)
+            .padding(.vertical, Spacing.md)
 
             Spacer()
 
             // Action button
-            Button {
+            PrimaryButton(
+                title: hasRehearsed ? "Great!" : "I've said it",
+                icon: hasRehearsed ? "checkmark.circle.fill" : nil
+            ) {
                 HapticFeedback.success()
                 hasRehearsed = true
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     onDismiss()
                 }
-            } label: {
-                HStack {
-                    if hasRehearsed {
-                        Image(systemName: "checkmark.circle.fill")
-                    }
-                    Text(hasRehearsed ? "Great!" : "I've said it")
-                }
-                .font(.headline)
-                .frame(maxWidth: .infinity)
-                .padding()
             }
-            .buttonStyle(.borderedProminent)
-            .padding(.horizontal, 24)
+            .padding(.horizontal, Spacing.lg)
 
             Button("Skip") {
                 onDismiss()
             }
             .font(.subheadline)
             .foregroundStyle(.secondary)
-            .padding(.bottom, 24)
+            .padding(.bottom, Spacing.lg)
         }
     }
 

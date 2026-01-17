@@ -76,22 +76,13 @@ struct SketchPreviewView: View {
                 refineView
             } else {
                 // Normal mode - show action buttons
-                VStack(spacing: 12) {
-                    Button {
+                VStack(spacing: Spacing.sm) {
+                    PrimaryButton(title: "Looks good") {
                         onContinue()
-                    } label: {
-                        Text("Looks good")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding()
                     }
-                    .buttonStyle(.borderedProminent)
 
-                    Button {
+                    SecondaryButton(title: "Add more details", icon: "mic.fill") {
                         isRefining = true
-                    } label: {
-                        Label("Add more details", systemImage: "mic.fill")
-                            .font(.subheadline)
                     }
 
                     if let onAddPhoto = onAddPhoto {
@@ -104,8 +95,8 @@ struct SketchPreviewView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 24)
+                .padding(.horizontal, Spacing.lg)
+                .padding(.bottom, Spacing.lg)
             }
         }
         .navigationTitle("Memory Sketch")
@@ -130,7 +121,7 @@ struct SketchPreviewView: View {
     @ViewBuilder
     private var descriptionView: some View {
         if isGeneratingDescription {
-            HStack(spacing: 8) {
+            HStack(spacing: Spacing.xs) {
                 ProgressView()
                     .controlSize(.small)
                 Text("Summarizing...")
@@ -139,16 +130,12 @@ struct SketchPreviewView: View {
             }
         } else if let description = synthesizedDescription, !description.isEmpty {
             // Show synthesized description with bold keywords
-            highlightedDescription(text: description, keywords: viewModel.keywords)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            HighlightedText(text: description, keywords: viewModel.keywords)
                 .multilineTextAlignment(.center)
                 .lineLimit(4)
         } else if let transcript = viewModel.transcript, !transcript.isEmpty {
             // Fallback to raw transcript with bold keywords
-            highlightedDescription(text: transcript, keywords: viewModel.keywords)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            HighlightedText(text: transcript, keywords: viewModel.keywords)
                 .multilineTextAlignment(.center)
                 .lineLimit(3)
         }
@@ -203,61 +190,6 @@ struct SketchPreviewView: View {
             }
         }
         .presentationDetents([.medium])
-    }
-
-    // MARK: - Highlighted Description
-
-    private func highlightedDescription(text: String, keywords: [String]) -> Text {
-        var result = Text("")
-        let lowercasedText = text.lowercased()
-
-        // Find all keyword ranges
-        var highlights: [(range: Range<String.Index>, keyword: String)] = []
-        for keyword in keywords {
-            let lowercasedKeyword = keyword.lowercased()
-            var searchStart = lowercasedText.startIndex
-            while let range = lowercasedText.range(of: lowercasedKeyword, range: searchStart..<lowercasedText.endIndex) {
-                highlights.append((range, keyword))
-                searchStart = range.upperBound
-            }
-        }
-
-        // Sort by start position
-        highlights.sort { $0.range.lowerBound < $1.range.lowerBound }
-
-        // Remove overlapping highlights (keep first)
-        var filteredHighlights: [(range: Range<String.Index>, keyword: String)] = []
-        for highlight in highlights {
-            if let last = filteredHighlights.last {
-                if highlight.range.lowerBound >= last.range.upperBound {
-                    filteredHighlights.append(highlight)
-                }
-            } else {
-                filteredHighlights.append(highlight)
-            }
-        }
-
-        // Build attributed text
-        var currentIndex = text.startIndex
-        for highlight in filteredHighlights {
-            // Add non-highlighted text before this keyword
-            if currentIndex < highlight.range.lowerBound {
-                let normalText = String(text[currentIndex..<highlight.range.lowerBound])
-                result = result + Text(normalText)
-            }
-            // Add highlighted keyword (use original case from text)
-            let originalKeyword = String(text[highlight.range])
-            result = result + Text(originalKeyword).bold()
-            currentIndex = highlight.range.upperBound
-        }
-
-        // Add remaining text
-        if currentIndex < text.endIndex {
-            let remainingText = String(text[currentIndex..<text.endIndex])
-            result = result + Text(remainingText)
-        }
-
-        return result
     }
 
     // MARK: - Generate Synthesized Description
@@ -335,13 +267,12 @@ struct SketchPreviewView: View {
     }
 
     private var refineView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Spacing.md) {
             Text("What else do you remember?")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            // Mic button
-            Button {
+            RecordButton(isRecording: viewModel.isRecording, size: .compact) {
                 Task {
                     if viewModel.isRecording {
                         await viewModel.stopRecordingAndRefine()
@@ -350,25 +281,7 @@ struct SketchPreviewView: View {
                         await viewModel.startRecording()
                     }
                 }
-            } label: {
-                ZStack {
-                    Circle()
-                        .fill(viewModel.isRecording ? Color.red : Color.accentColor)
-                        .frame(width: 70, height: 70)
-                        .shadow(radius: viewModel.isRecording ? 8 : 4)
-
-                    if viewModel.isRecording {
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(.white)
-                            .frame(width: 24, height: 24)
-                    } else {
-                        Image(systemName: "mic.fill")
-                            .font(.system(size: 28))
-                            .foregroundStyle(.white)
-                    }
-                }
             }
-            .buttonStyle(.plain)
 
             Button {
                 isRefining = false
@@ -378,7 +291,7 @@ struct SketchPreviewView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .padding(.bottom, 24)
+        .padding(.bottom, Spacing.lg)
     }
 }
 

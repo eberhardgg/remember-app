@@ -8,10 +8,10 @@ struct NameEntryView: View {
     @FocusState private var isFocused: Bool
 
     var body: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: Spacing.xl) {
             Spacer()
 
-            VStack(spacing: 16) {
+            VStack(spacing: Spacing.md) {
                 Text("What's their name?")
                     .font(.title2)
                     .fontWeight(.semibold)
@@ -32,25 +32,18 @@ struct NameEntryView: View {
 
                 Rectangle()
                     .fill(Color.accentColor)
-                    .frame(height: 2)
-                    .frame(maxWidth: 200)
+                    .frame(height: Sizing.underline)
+                    .frame(maxWidth: Sizing.maxInputWidth)
             }
-            .padding(.horizontal, 40)
+            .padding(.horizontal, Spacing.xxl)
 
             Spacer()
 
-            Button {
+            PrimaryButton(title: "Continue", isDisabled: !viewModel.isNameValid) {
                 continueToNext()
-            } label: {
-                Text("Continue")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(!viewModel.isNameValid)
-            .padding(.horizontal, 24)
-            .padding(.bottom, 24)
+            .padding(.horizontal, Spacing.lg)
+            .padding(.bottom, Spacing.lg)
         }
         .navigationTitle("Add Someone")
         .onAppear {

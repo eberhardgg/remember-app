@@ -35,32 +35,36 @@ struct HomeView: View {
                     }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    HStack(spacing: 16) {
+                    HStack(spacing: Spacing.md) {
                         // Voice search button
                         Button {
                             Task {
                                 await toggleVoiceSearch()
                             }
                         } label: {
-                            Image(systemName: isRecordingSearch ? "stop.circle.fill" : "mic.fill")
-                                .foregroundStyle(isRecordingSearch ? .red : .primary)
+                            Image(systemName: isRecordingSearch ? "stop.circle.fill" : "mic")
+                                .foregroundStyle(isRecordingSearch ? Color.rememberRecording : .primary)
                         }
                         .disabled(isTranscribing)
 
+                        // Add person menu - voice is primary, quick add is secondary
                         Menu {
-                            Button {
-                                showingQuickAdd = true
-                            } label: {
-                                Label("Quick Add", systemImage: "plus")
-                            }
-
                             Button {
                                 showingAddPerson = true
                             } label: {
                                 Label("Add with Voice", systemImage: "mic.fill")
                             }
+
+                            Button {
+                                showingQuickAdd = true
+                            } label: {
+                                Label("Quick Add", systemImage: "square.and.pencil")
+                            }
                         } label: {
                             Image(systemName: "plus")
+                        } primaryAction: {
+                            // Tap goes directly to voice flow
+                            showingAddPerson = true
                         }
                     }
                 }

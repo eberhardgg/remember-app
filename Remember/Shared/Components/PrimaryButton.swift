@@ -2,23 +2,27 @@ import SwiftUI
 
 struct PrimaryButton: View {
     let title: String
-    let action: () -> Void
+    var icon: String? = nil
     var isLoading: Bool = false
     var isDisabled: Bool = false
+    let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 8) {
+            HStack(spacing: Spacing.xs) {
                 if isLoading {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         .scaleEffect(0.8)
                 }
+                if let icon = icon, !isLoading {
+                    Image(systemName: icon)
+                }
                 Text(title)
                     .font(.headline)
             }
             .frame(maxWidth: .infinity)
-            .padding()
+            .frame(height: Sizing.Button.standard)
         }
         .buttonStyle(.borderedProminent)
         .disabled(isDisabled || isLoading)
@@ -26,10 +30,11 @@ struct PrimaryButton: View {
 }
 
 #Preview {
-    VStack(spacing: 16) {
-        PrimaryButton(title: "Continue", action: {})
-        PrimaryButton(title: "Loading...", action: {}, isLoading: true)
-        PrimaryButton(title: "Disabled", action: {}, isDisabled: true)
+    VStack(spacing: Spacing.md) {
+        PrimaryButton(title: "Continue") {}
+        PrimaryButton(title: "Add Someone", icon: "plus") {}
+        PrimaryButton(title: "Loading...", isLoading: true) {}
+        PrimaryButton(title: "Disabled", isDisabled: true) {}
     }
-    .padding()
+    .padding(Spacing.lg)
 }
