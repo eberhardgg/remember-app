@@ -272,7 +272,7 @@ struct SketchPreviewView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            RecordButton(isRecording: viewModel.isRecording, size: .compact) {
+            RecordButton(isRecording: viewModel.isRecording, action: {
                 Task {
                     if viewModel.isRecording {
                         await viewModel.stopRecordingAndRefine()
@@ -281,7 +281,7 @@ struct SketchPreviewView: View {
                         await viewModel.startRecording()
                     }
                 }
-            }
+            }, size: .compact)
 
             Button {
                 isRefining = false

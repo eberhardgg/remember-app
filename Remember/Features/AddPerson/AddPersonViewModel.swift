@@ -339,7 +339,7 @@ final class AddPersonViewModel {
         }
 
         // Save audio path
-        if let audioURL = audioURL {
+        if audioURL != nil {
             person.audioNotePath = "audio/\(person.id.uuidString).m4a"
         }
 
